@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: syntx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: syntx_user
+      POSTGRES_PASSWORD: syntx_password
+      POSTGRES_DB: syntx_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - syntx_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U syntx_user -d syntx_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: syntx-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+
+volumes:
+  syntx_postgres_data:
