@@ -6,8 +6,9 @@ from alembic import context
 from app.core.config import settings
 from app.db.base import Base
 
-# importa modelele aici pe măsură ce le adăugăm
-# from app.models.user import User
+from app.models.user import User
+from app.models.user_settings import UserSettings
+from app.models.project import Project
 
 config = context.config
 
