@@ -10,6 +10,9 @@ __pycache__/
 venv/
 env/
 
+# Alembic cache
+alembic/__pycache__/
+
 # Node
 node_modules/
 dist/
