@@ -1,6 +1,9 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.router import api_router
 from app.core.config import settings
+from app.core.exceptions import register_exception_handlers
 
 
 def create_application() -> FastAPI:
@@ -12,9 +15,20 @@ def create_application() -> FastAPI:
         openapi_url="/openapi.json",
     )
 
-    @application.get("/health", tags=["Health"])
-    def health_check() -> dict[str, str]:
-        return {"status": "ok"}
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.backend_cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    register_exception_handlers(application)
+
+    application.include_router(
+        api_router,
+        prefix=settings.api_v1_prefix,
+    )
 
     return application
 
