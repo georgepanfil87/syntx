@@ -8,3 +8,4 @@ export { Logo } from './logo/logo';
 export { Resizer } from './resizer/resizer';
 export { Skeleton } from './skeleton/skeleton';
 export { Textarea } from './textarea/textarea';
+export { Badge, type BadgeSize, type BadgeVariant } from './badge/badge';
