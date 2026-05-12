@@ -1,0 +1,122 @@
+<div class="min-h-screen grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+  <!-- ── Brand panel (left) ───────────────────────────────── -->
+  <aside
+    class="hidden lg:flex flex-col justify-between p-10 border-r border-border/60 hero-glow relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none"
+      style="background: radial-gradient(ellipse at top right, hsl(280 80% 60% / 0.10) 0%, transparent 60%)"></div>
+
+    <a routerLink="/" class="relative inline-flex items-center gap-2">
+      <sx-logo [size]="32" ariaLabel="Syntx" />
+      <span class="text-sm font-semibold gradient-text tracking-wide">Syntx</span>
+    </a>
+
+    <div class="relative space-y-6 max-w-md animate-fade-up">
+      <p class="text-[10px] uppercase tracking-[0.3em] text-primary">
+        {{ i18n.t('auth.login.brandTag') }}
+      </p>
+      <h2 class="text-3xl xl:text-4xl font-semibold leading-tight">
+        <span class="gradient-text">{{ i18n.t('auth.login.brandHeading') }}</span>
+        <br />
+        {{ i18n.t('auth.login.brandSubheading') }}
+      </h2>
+      <p class="text-sm text-muted-foreground">
+        {{ i18n.t('auth.login.brandBody') }}
+      </p>
+
+      <!-- Mini workspace teaser -->
+      <div class="rounded-xl border border-border surface-elevated overflow-hidden">
+        <div class="flex items-center gap-2 px-3 py-2 border-b border-border bg-card/60">
+          <sx-logo [size]="16" ariaLabel="" />
+          <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            portfolio-rewrite
+          </span>
+        </div>
+        <div class="grid grid-cols-[80px_minmax(0,1fr)_100px] gap-1 p-1.5 text-[9px] font-mono">
+          <div class="rounded bg-card/80 p-1.5 space-y-1 text-muted-foreground">
+            <p class="text-primary text-[8px] uppercase">files</p>
+            <p>main.ts</p>
+            <p class="text-primary">styles.css</p>
+          </div>
+          <div class="rounded bg-card/80 p-1.5 leading-snug">
+            <p class="text-primary">.hero</p>
+            <p class="pl-2 text-muted-foreground">color: …</p>
+          </div>
+          <div class="rounded bg-card/80 p-1.5 space-y-1">
+            <p class="text-primary text-[8px] uppercase">chat</p>
+            <p class="rounded bg-primary/10 px-1 py-0.5 text-foreground">refactor css</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <sx-badge variant="outline">{{ i18n.t('auth.login.tagNoCloud') }}</sx-badge>
+        <sx-badge variant="outline">{{ i18n.t('auth.login.tagNoTelemetry') }}</sx-badge>
+        <sx-badge variant="outline">{{ i18n.t('auth.login.tagObservable') }}</sx-badge>
+      </div>
+    </div>
+
+    <p class="relative text-[10px] text-muted-foreground">
+      {{ i18n.t('auth.login.footer', { year }) }}
+    </p>
+  </aside>
+
+  <!-- ── Form panel (right) ────────────────────────────────── -->
+  <main class="flex flex-col p-6 sm:p-10 hero-glow lg:hero-glow-none">
+    <!-- Mobile-only brand row -->
+    <header class="flex items-center justify-between lg:hidden mb-8">
+      <a routerLink="/" class="flex items-center gap-2">
+        <sx-logo [size]="32" ariaLabel="Syntx" />
+        <span class="text-sm font-semibold gradient-text tracking-wide">Syntx</span>
+      </a>
+      <a routerLink="/register" class="text-xs text-muted-foreground hover:text-foreground transition">
+        {{ i18n.t('auth.login.createAccount') }}
+      </a>
+    </header>
+
+    <div class="flex-1 flex items-center justify-center">
+      <div class="w-full max-w-sm space-y-6 animate-fade-up">
+        <header class="space-y-2">
+          <p class="text-xs uppercase tracking-[0.3em] text-primary">{{ i18n.t('auth.signIn') }}</p>
+          <h1 class="text-2xl font-semibold leading-tight">
+            <span class="gradient-text">{{ i18n.t('auth.login.title') }}</span>
+          </h1>
+          <p class="text-sm text-muted-foreground">
+            {{ i18n.t('auth.login.subtitle') }}
+          </p>
+        </header>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4 flex flex-col">
+          <sx-input formControlName="email" type="email" [label]="i18n.t('auth.email')"
+            [placeholder]="i18n.t('auth.login.emailPlaceholder')" autocomplete="email" [error]="emailError()" />
+
+          <sx-input formControlName="password" type="password" [label]="i18n.t('auth.password')"
+            [placeholder]="i18n.t('auth.login.passwordPlaceholder')" autocomplete="current-password"
+            [error]="passwordError()" />
+
+          @if (formError()) {
+          <p class="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2"
+            role="alert">
+            {{ formError() }}
+          </p>
+          }
+
+          <sx-button type="submit" [fullWidth]="true" size="lg" [loading]="auth.loading()">
+            <sx-icon slot="leading" name="log-in" [size]="14" />
+            <span>{{ i18n.t('auth.login.submit') }}</span>
+          </sx-button>
+        </form>
+
+        <p class="text-xs text-muted-foreground text-center">
+          {{ i18n.t('auth.login.newAccount') }}
+          <a routerLink="/register" class="text-primary hover:underline ml-1">
+            {{ i18n.t('auth.login.createAccount') }}
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <footer class="hidden lg:flex items-center justify-end text-[10px] text-muted-foreground">
+      <a routerLink="/" class="hover:text-foreground transition">{{ i18n.t('auth.login.backHome') }}</a>
+    </footer>
+  </main>
+</div>
