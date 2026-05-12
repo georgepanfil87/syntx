@@ -42,9 +42,13 @@ services:
       - syntx
 
   ollama:
-    image: ollama/ollama:latest
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
     container_name: syntx-ollama
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "${OLLAMA_PORT:-11434}:11434"
     volumes:
@@ -63,7 +67,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-4200}:4200"
     volumes:
-      - ./frontend:/app
+      - ./syntx-frontend:/app
       - /app/node_modules
     networks:
       - syntx
