@@ -1,0 +1,39 @@
+   .ab-tip {
+     position: absolute;
+     left: 100%;
+     top: 50%;
+     transform: translateY(-50%);
+     margin-left: 0.5rem;
+     padding: 0.25rem 0.5rem;
+     font-size: 11px;
+     line-height: 1;
+     white-space: nowrap;
+     border-radius: 4px;
+     background: hsl(var(--card));
+     color: hsl(var(--foreground));
+     border: 1px solid hsl(var(--border));
+     box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+     opacity: 0;
+     pointer-events: none;
+     transform-origin: left center;
+     transition: opacity 80ms ease-out, transform 80ms ease-out;
+     z-index: 30;
+   }
+
+   .ab-tip-wrap:hover .ab-tip,
+   .ab-tip-wrap:focus-within .ab-tip {
+     opacity: 1;
+   }
+
+   .ab-tip::before {
+     content: '';
+     position: absolute;
+     left: -4px;
+     top: 50%;
+     width: 6px;
+     height: 6px;
+     background: hsl(var(--card));
+     border-left: 1px solid hsl(var(--border));
+     border-bottom: 1px solid hsl(var(--border));
+     transform: translateY(-50%) rotate(45deg);
+   }

@@ -1,0 +1,70 @@
+<div class="ab-tip-wrap relative">
+  <button type="button" class="relative inline-flex items-center justify-center w-9 h-9 rounded-md transition"
+    [class.text-primary]="selected() === 'files'" [class.bg-primary\\/10]="selected() === 'files'"
+    [class.text-muted-foreground]="selected() !== 'files'" [class.hover:text-foreground]="selected() !== 'files'"
+    [class.hover:bg-secondary]="selected() !== 'files'" [attr.aria-label]="i18n.t('activity.files')"
+    [attr.aria-pressed]="selected() === 'files'" (click)="select.emit('files')">
+    @if (selected() === 'files') {
+    <span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-primary"></span>
+    }
+    <sx-icon name="folder" [size]="16" />
+  </button>
+  <span class="ab-tip" role="tooltip">{{ i18n.t('activity.files') }}</span>
+</div>
+
+<div class="ab-tip-wrap relative">
+  <button type="button" class="relative inline-flex items-center justify-center w-9 h-9 rounded-md transition"
+    [class.text-primary]="selected() === 'git'" [class.bg-primary\\/10]="selected() === 'git'"
+    [class.text-muted-foreground]="selected() !== 'git'" [class.hover:text-foreground]="selected() !== 'git'"
+    [class.hover:bg-secondary]="selected() !== 'git'" [attr.aria-label]="i18n.t('activity.git')"
+    [attr.aria-pressed]="selected() === 'git'" (click)="select.emit('git')">
+    @if (selected() === 'git') {
+    <span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-primary"></span>
+    }
+    <sx-icon name="chart-line" [size]="16" />
+  </button>
+  <span class="ab-tip" role="tooltip">{{ i18n.t('activity.git') }}</span>
+</div>
+
+<!-- spacer pushes the action group to the bottom -->
+<div class="flex-1"></div>
+
+<!-- Action buttons (bottom group) -->
+<div class="ab-tip-wrap relative">
+  <button type="button"
+    class="inline-flex items-center justify-center w-9 h-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+    [attr.aria-label]="i18n.t('activity.search')" (click)="openSearch.emit()">
+    <sx-icon name="search" [size]="16" />
+  </button>
+  <span class="ab-tip" role="tooltip">{{ i18n.t('activity.search') }}</span>
+</div>
+
+<div class="ab-tip-wrap relative">
+  <button type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-md transition"
+    [class.text-primary]="terminalOpen()" [class.bg-primary\\/10]="terminalOpen()"
+    [class.text-muted-foreground]="!terminalOpen()" [class.hover:text-foreground]="!terminalOpen()"
+    [class.hover:bg-secondary]="!terminalOpen()" [attr.aria-label]="i18n.t('activity.terminal')"
+    [attr.aria-pressed]="terminalOpen()" (click)="toggleTerminal.emit()">
+    <sx-icon name="chevron-right" [size]="16" />
+  </button>
+  <span class="ab-tip" role="tooltip">{{ i18n.t('activity.terminal') }}</span>
+</div>
+
+<div class="ab-tip-wrap relative">
+  <button type="button"
+    class="inline-flex items-center justify-center w-9 h-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+    [attr.aria-label]="i18n.t('activity.export')" [disabled]="exportDisabled()" [class.opacity-50]="exportDisabled()"
+    [class.cursor-not-allowed]="exportDisabled()" (click)="exportProject.emit()">
+    <sx-icon name="download" [size]="16" />
+  </button>
+  <span class="ab-tip" role="tooltip">{{ i18n.t('activity.export') }}</span>
+</div>
+
+<div class="ab-tip-wrap relative">
+  <button type="button"
+    class="inline-flex items-center justify-center w-9 h-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+    [attr.aria-label]="i18n.t('activity.settings')" (click)="openSettings.emit()">
+    <sx-icon name="settings" [size]="16" />
+  </button>
+  <span class="ab-tip" role="tooltip">{{ i18n.t('activity.settings') }}</span>
+</div>

@@ -1,0 +1,197 @@
+ <div class="border-t border-border p-2 space-y-1">
+      <!--  Autocomplete dropdown (above the textarea)  -->
+      @if (showAutocomplete()) {
+        <ul
+          class="rounded-md border border-border surface-elevated max-h-44 overflow-auto py-1 text-xs"
+          role="listbox"
+          aria-label="File suggestions"
+        >
+          @for (path of suggestions(); let i = $index; track path) {
+            <li>
+              <button
+                type="button"
+                class="w-full text-left px-2 py-1 font-mono truncate transition"
+                [class.bg-secondary]="i === highlightIdx()"
+                [class.text-primary]="i === highlightIdx()"
+                (mouseenter)="highlightIdx.set(i)"
+                (mousedown)="onSuggestionClick($event, path)"
+              >{{ path }}</button>
+            </li>
+          }
+        </ul>
+      }
+
+      <!--  Invalid mentions hint  -->
+      @if (unknownMentions().length > 0) {
+        <p class="text-[10px] text-amber-300 px-2">
+          Unknown file{{ unknownMentions().length === 1 ? '' : 's' }}:
+          <span class="font-mono">{{ unknownMentions().join(', ') }}</span>
+        </p>
+      }
+      @if (showReceipt()) {
+        <div
+          class="mx-1 px-2 py-1 rounded-md border border-border/70 bg-secondary/40 text-[10px] text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5"
+          aria-live="polite"
+        >
+          <span class="text-foreground font-medium">
+            ~{{ estimatedTokens() }} tokens
+          </span>
+          <span aria-hidden="true">·</span>
+          @if (openFilePath()) {
+            <span class="inline-flex items-center gap-1">
+              <sx-icon name="file" [size]="10" />
+              <span class="font-mono truncate max-w-[10rem]">{{ openFilePath() }}</span>
+            </span>
+            <span aria-hidden="true">·</span>
+          }
+          <span>
+            {{ knownMentionCount() }} mention{{ knownMentionCount() === 1 ? '' : 's' }}
+          </span>
+          @if (contextFiles().length > 0) {
+            <span aria-hidden="true">·</span>
+            <span class="text-primary">
+              {{ contextFiles().length }} context file{{ contextFiles().length === 1 ? '' : 's' }}
+            </span>
+          }
+          @if (webSearchAvailable()) {
+            <span aria-hidden="true">·</span>
+            <span [class.text-primary]="webSearchOn()">
+              web search {{ webSearchOn() ? 'on' : 'off' }}
+            </span>
+          }
+        </div>
+      }
+
+      @if (contextFiles().length > 0) {
+        <div
+          class="flex flex-wrap items-center gap-1 px-2 py-1 rounded-md bg-secondary/30 border border-border/60"
+          aria-label="Files attached to this chat as context"
+        >
+          <span class="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pr-1">
+            {{ i18n.t('chat.context') }}
+          </span>
+          @for (path of contextFiles(); track path) {
+            <span
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background border border-border text-[10px] font-mono max-w-[14rem]"
+              [title]="path"
+            >
+              <sx-icon name="file" [size]="9" class="text-primary/70 shrink-0" />
+              <span class="truncate">{{ basename(path) }}</span>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition shrink-0"
+                [title]="'Remove ' + path"
+                [attr.aria-label]="'Remove ' + path + ' from context'"
+                (click)="removeContextFile.emit(path)"
+              >
+                <sx-icon name="x" [size]="8" />
+              </button>
+            </span>
+          }
+          <button
+            type="button"
+            class="ml-auto text-[10px] text-muted-foreground hover:text-destructive transition"
+            (click)="clearContextFiles.emit()"
+          >
+            {{ i18n.t('chat.clearAll') }}
+          </button>
+        </div>
+      }
+
+      <div
+        class="flex items-end gap-2 rounded-md border bg-background transition focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent"
+        [class.border-border]="!isDropTarget()"
+        [class.border-primary]="isDropTarget()"
+        [class.ring-2]="isDropTarget()"
+        [class.ring-primary]="isDropTarget()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <textarea
+          #ta
+          class="flex-1 bg-transparent outline-none border-0 px-3 py-2 text-sm resize-none placeholder:text-muted-foreground/60 disabled:cursor-not-allowed"
+          [style.minHeight.px]="minHeightPx"
+          [style.maxHeight.px]="maxHeightPx"
+          [ngModel]="value()"
+          (ngModelChange)="onChange($event)"
+          (keydown)="onKeydown($event)"
+          (click)="recomputeMentionContext()"
+          (keyup)="recomputeMentionContext()"
+          [disabled]="disabled()"
+          [placeholder]="dropPlaceholder()"
+          [rows]="MIN_ROWS"
+          autocomplete="off"
+          spellcheck="true"
+        ></textarea>
+
+        @if (webSearchAvailable()) {
+          <button
+            type="button"
+            class="m-1.5 inline-flex items-center justify-center rounded-md w-9 h-9 transition disabled:opacity-40"
+            [class.bg-primary]="webSearchOn()"
+            [class.text-primary-foreground]="webSearchOn()"
+            [class.text-muted-foreground]="!webSearchOn()"
+            [class.hover:text-foreground]="!webSearchOn()"
+            [class.hover:bg-secondary]="!webSearchOn()"
+            [disabled]="streaming() || disabled()"
+            [attr.aria-pressed]="webSearchOn()"
+            [attr.aria-label]="webSearchOn() ? 'Disable web search for this message' : 'Enable web search for this message'"
+            [title]="webSearchOn() ? 'Web search: on' : 'Web search: off'"
+            (click)="toggleWebSearch()"
+          >
+            <sx-icon name="globe" [size]="14" />
+          </button>
+        }
+
+        <button
+          type="button"
+          class="m-1.5 inline-flex items-center justify-center rounded-md w-9 h-9 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          [class.bg-primary]="!streaming() && canSend()"
+          [class.text-primary-foreground]="!streaming() && canSend()"
+          [class.bg-destructive]="streaming()"
+          [class.text-destructive-foreground]="streaming()"
+          [class.bg-secondary]="!streaming() && !canSend()"
+          [class.text-muted-foreground]="!streaming() && !canSend()"
+          [disabled]="!streaming() && !canSend()"
+          [attr.aria-label]="streaming() ? 'Stop streaming' : 'Send message'"
+          (click)="onPrimary()"
+        >
+          @if (streaming()) {
+            <sx-icon name="x" [size]="14" />
+          } @else {
+            <sx-icon name="arrow-right" [size]="14" />
+          }
+        </button>
+      </div>
+
+      <!--  Bottom bar: hint + model selector -->
+      <div class="flex items-center justify-between gap-2 px-2">
+        <p class="text-[10px] text-muted-foreground">
+          @if (streaming()) {
+            {{ i18n.t('chat.streamingHint') }}
+          } @else {
+            {{ i18n.t('chat.defaultHint') }}
+          }
+        </p>
+
+        @if (availableModels().length > 0) {
+          <select
+            class="text-[10px] font-mono bg-background border border-border rounded px-1.5 py-0.5 text-muted-foreground hover:text-foreground outline-none focus:ring-1 focus:ring-ring cursor-pointer max-w-[13rem] truncate disabled:opacity-50 disabled:cursor-not-allowed"
+            [ngModel]="selectedModel()"
+            (ngModelChange)="selectedModel.set($event)"
+            [disabled]="streaming()"
+            [title]="selectedModel()"
+            aria-label="LLM model for this message"
+          >
+            @for (m of availableModels(); track m.name) {
+              <option [value]="m.name">{{ m.name }}</option>
+            }
+          </select>
+        } @else if (modelsLoading()) {
+          <span class="text-[10px] text-muted-foreground font-mono animate-pulse">
+            {{ i18n.t('chat.modelLoading') }}
+          </span>
+        }
+      </div>
+    </div>

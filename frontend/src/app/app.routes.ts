@@ -44,4 +44,13 @@ export const routes: Routes = [
       },
     ],
   },
+   {
+    path: 'workspace/projects/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import(
+        './features/workspace/pages/project-workspace/project-workspace'
+      ).then((m) => m.ProjectWorkspace),
+  },
+  { path: '**', redirectTo: '' },
 ];

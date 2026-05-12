@@ -1,0 +1,239 @@
+    <!-- Inline header (replaces the modal chrome) -->
+    <header
+      class="flex items-center justify-between gap-2 px-3 py-2 border-b border-border shrink-0"
+    >
+      <h2 class="text-xs uppercase tracking-wider text-primary">
+        {{ i18n.t('git.title') }}
+      </h2>
+    </header>
+
+    <div class="flex-1 min-h-0 overflow-auto p-3">
+      <!-- Tab bar -->
+      <div class="flex items-center gap-1 mb-3 border-b border-border">
+        <button
+          type="button"
+          class="px-3 py-1.5 text-xs transition border-b-2"
+          [class.border-primary]="tab() === 'status'"
+          [class.text-primary]="tab() === 'status'"
+          [class.border-transparent]="tab() !== 'status'"
+          [class.text-muted-foreground]="tab() !== 'status'"
+          [class.hover:text-foreground]="tab() !== 'status'"
+          (click)="setTab('status')"
+        >
+          {{ i18n.t('git.tabStatus') }}
+          @if (statusData()?.changed?.length) {
+            <span class="ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-4 rounded-full text-[9px] bg-primary/20 text-primary px-1">
+              {{ statusData()?.changed?.length }}
+            </span>
+          }
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 text-xs transition border-b-2"
+          [class.border-primary]="tab() === 'history'"
+          [class.text-primary]="tab() === 'history'"
+          [class.border-transparent]="tab() !== 'history'"
+          [class.text-muted-foreground]="tab() !== 'history'"
+          [class.hover:text-foreground]="tab() !== 'history'"
+          (click)="setTab('history')"
+        >
+          {{ i18n.t('git.tabHistory') }}
+          @if (statusData()?.commits) {
+            <span class="ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-4 rounded-full text-[9px] bg-secondary text-muted-foreground px-1">
+              {{ statusData()?.commits }}
+            </span>
+          }
+        </button>
+      </div>
+
+      <!-- Status tab -->
+      @if (tab() === 'status') {
+        <div class="space-y-3">
+          <!-- Branch + last commit hint -->
+          @if (statusData(); as s) {
+            <div class="flex items-center justify-between text-xs text-muted-foreground">
+              <span class="inline-flex items-center gap-1">
+                <sx-icon name="folder" [size]="11" />
+                <span class="font-mono">{{ s.branch }}</span>
+                <span class="opacity-60">&middot; {{ s.commits === 1 ? i18n.t('git.commits', { count: s.commits }) : i18n.t('git.commitsPlural', { count: s.commits }) }}</span>
+              </span>
+              @if (s.last_commit_at) {
+                <span>{{ i18n.t('git.lastCommit', { time: formatTime(s.last_commit_at) }) }}</span>
+              }
+            </div>
+          }
+
+          <!-- Changed files list -->
+          @if (loadingStatus()) {
+            <div class="space-y-1.5">
+              @for (i of [1,2,3]; track i) {
+                <div class="h-7 rounded animate-shimmer"></div>
+              }
+            </div>
+          } @else if (statusData()?.changed?.length === 0) {
+            <p class="text-sm text-muted-foreground italic py-6 text-center">
+              {{ i18n.t('git.cleanWorkingTree') }}
+            </p>
+          } @else {
+            <ul class="border border-border rounded-md max-h-[40vh] overflow-auto divide-y divide-border">
+              @for (f of statusData()?.changed ?? []; track f.path) {
+                <li class="flex items-center gap-2 px-3 py-1.5 text-xs">
+                  <span
+                    class="inline-flex items-center justify-center w-4 h-4 rounded text-[9px] font-bold shrink-0"
+                    [class.bg-green-500\\/20]="f.change === 'added'"
+                    [class.text-green-400]="f.change === 'added'"
+                    [class.bg-amber-500\\/20]="f.change === 'modified'"
+                    [class.text-amber-400]="f.change === 'modified'"
+                    [class.bg-destructive\\/20]="f.change === 'deleted'"
+                    [class.text-destructive]="f.change === 'deleted'"
+                    [title]="f.change"
+                  >
+                    {{ f.change[0].toUpperCase() }}
+                  </span>
+                  <span class="font-mono truncate flex-1" [title]="f.path">
+                    {{ f.path }}
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+
+          <!-- Commit form -->
+          <div class="space-y-2 pt-2 border-t border-border">
+            <label class="text-xs text-muted-foreground" for="commit-msg">
+              {{ i18n.t('git.commitMessage') }}
+            </label>
+            <textarea
+              id="commit-msg"
+              rows="2"
+              class="w-full text-sm bg-background border border-border rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-ring resize-y"
+              [placeholder]="i18n.t('git.commitPlaceholder')"
+              [ngModel]="message()"
+              (ngModelChange)="message.set($event)"
+              [disabled]="committing()"
+              (keydown.control.enter)="onCommit()"
+              (keydown.meta.enter)="onCommit()"
+            ></textarea>
+            <div class="flex items-center justify-between">
+              <p class="text-[10px] text-muted-foreground">
+                {{ i18n.t('git.commitHint') }}
+              </p>
+              <sx-button
+                (click)="onCommit()"
+                [disabled]="!canCommit()"
+              >
+                @if (committing()) {
+                  {{ i18n.t('git.committing') }}
+                } @else {
+                  {{ i18n.t('git.commit') }}
+                }
+              </sx-button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- History tab -->
+      @if (tab() === 'history') {
+        <div class="flex gap-3 h-[60vh] min-h-[18rem]">
+          <!-- Left: commit list -->
+          <div class="w-1/3 min-w-[14rem] border border-border rounded-md overflow-auto">
+            @if (loadingLog()) {
+              <div class="space-y-1.5 p-2">
+                @for (i of [1,2,3,4]; track i) {
+                  <div class="h-12 rounded animate-shimmer"></div>
+                }
+              </div>
+            } @else if (commits().length === 0) {
+              <p class="text-sm text-muted-foreground italic py-6 text-center">
+                {{ i18n.t('git.noCommits') }}
+              </p>
+            } @else {
+              <ul class="divide-y divide-border">
+                @for (c of commits(); track c.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="w-full text-left px-3 py-2 transition"
+                      [class.bg-secondary]="selectedCommitId() === c.id"
+                      [class.hover:bg-secondary\\/50]="selectedCommitId() !== c.id"
+                      (click)="selectCommit(c)"
+                    >
+                      <div class="text-xs font-medium truncate" [title]="c.message">
+                        {{ c.message }}
+                      </div>
+                      <div class="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-2">
+                        <span>{{ formatTime(c.created_at) }}</span>
+                        <span class="opacity-60">{{ c.file_count === 1 ? i18n.t('git.files', { count: c.file_count }) : i18n.t('git.filesPlural', { count: c.file_count }) }}</span>
+                      </div>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <!-- Right: file list of selected commit + diff viewer -->
+          <div class="flex-1 min-w-0 flex flex-col border border-border rounded-md overflow-hidden">
+            @if (!selectedCommitId()) {
+              <div class="flex-1 flex items-center justify-center text-sm text-muted-foreground italic px-3 text-center">
+                {{ i18n.t('git.selectCommit') }}
+              </div>
+            } @else if (loadingDetail()) {
+              <div class="flex-1 p-3 space-y-1.5">
+                @for (i of [1,2,3,4,5]; track i) {
+                  <div class="h-6 rounded animate-shimmer"></div>
+                }
+              </div>
+            } @else if (!selectedFile()) {
+              <!-- File list -->
+              <ul class="overflow-auto divide-y divide-border">
+                @for (f of selectedFiles(); track f.path) {
+                  <li>
+                    <button
+                      type="button"
+                      class="w-full flex items-center gap-2 px-3 py-2 text-left text-xs hover:bg-secondary transition"
+                      (click)="selectFile(f.path)"
+                    >
+                      <sx-icon [name]="iconFor(f.path)" [size]="11" class="shrink-0" />
+                      <span class="font-mono truncate flex-1">{{ f.path }}</span>
+                      <span class="text-[10px] text-muted-foreground shrink-0">
+                        {{ f.size_bytes }} B
+                      </span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <!-- Diff view -->
+              <div class="flex items-center justify-between px-3 py-1.5 border-b border-border bg-secondary/30">
+                <span class="text-xs font-mono truncate">{{ selectedFile() }}</span>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition"
+                  (click)="backToFiles()"
+                >
+                  <sx-icon name="arrow-left" [size]="10" />
+                  {{ i18n.t('git.backToFiles') }}
+                </button>
+              </div>
+              <div class="flex-1 min-h-0">
+                @if (loadingDiff()) {
+                  <div class="h-full flex items-center justify-center text-sm text-muted-foreground italic">
+                    {{ i18n.t('git.loadingDiff') }}
+                  </div>
+                } @else if (diff(); as d) {
+                  <monaco-diff
+                    [original]="d.before"
+                    [modified]="d.after"
+                    [language]="languageFromPath(d.path)"
+                    [theme]="themeSvc.monacoTheme()"
+                  />
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    </div>

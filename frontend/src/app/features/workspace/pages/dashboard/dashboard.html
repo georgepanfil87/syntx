@@ -1,5 +1,5 @@
   <div class="max-w-6xl mx-auto p-6 space-y-6 animate-fade-up">
-      <!-- ── Hero ─────────────────────────────────────────────── -->
+      <!-- Hero -->
       <header>
         <p class="text-xs uppercase tracking-[0.3em] text-primary">{{ i18n.t('dashboard.tagline') }}</p>
         <h1 class="text-3xl sm:text-4xl font-semibold mt-1 leading-tight">
@@ -9,14 +9,9 @@
             >.
           </span>
         </h1>
-        <!-- @if (auth.currentUser(); as user) {
-          <p class="text-sm text-muted-foreground mt-1">
-            Signed in as <span class="text-foreground">{{ user.email }}</span>.
-          </p>
-        } -->
       </header>
 
-      <!-- ── Stats strip ──────────────────────────────────────── -->
+      <!-- Stats strip -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <sx-card variant="elevated">
           <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ i18n.t('dashboard.tileProjects') }}</p>
@@ -53,7 +48,7 @@
         </sx-card>
       </div>
 
-      <!-- ── Body ─────────────────────────────────────────────── -->
+      <!-- Body -->
       <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-4">
         <!-- Recent projects -->
         <sx-card variant="elevated">
