@@ -22,11 +22,19 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor/min/vs",
+                "output": "assets/monaco/vs"
               }
             ],
             "styles": [
               "src/styles.css"
-            ]
+            ],
+            "loader": {
+              ".ttf": "file"
+            }
           },
           "configurations": {
             "production": {
@@ -54,6 +62,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "frontend:build:production"
