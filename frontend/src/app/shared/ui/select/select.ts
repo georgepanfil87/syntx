@@ -1,9 +1,16 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EmbeddedViewRef,
   HostListener,
+  OnDestroy,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef,
   computed,
+  effect,
   inject,
   input,
   output,
@@ -21,8 +28,9 @@ export interface SelectOption {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="relative" [class.opacity-50]="disabled()" [class.pointer-events-none]="disabled()">
+    <div [class.opacity-50]="disabled()" [class.pointer-events-none]="disabled()">
       <button
+        #trigger
         type="button"
         role="combobox"
         [attr.aria-expanded]="open() ? 'true' : 'false'"
@@ -53,40 +61,44 @@ export interface SelectOption {
           />
         </svg>
       </button>
-
-      @if (open()) {
-        <ul
-          role="listbox"
-          class="absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-auto rounded-md border border-border bg-popover shadow-lg shadow-black/30 py-1 text-sm animate-fade-up"
-        >
-          @if (options().length === 0) {
-            <li class="px-3 py-2 text-xs text-muted-foreground">
-              {{ emptyHint() || 'No options' }}
-            </li>
-          }
-          @for (opt of options(); track opt.value; let i = $index) {
-            <li
-              role="option"
-              [attr.aria-selected]="opt.value === value() ? 'true' : 'false'"
-              (click)="pick(opt.value)"
-              (mouseenter)="highlight.set(i)"
-              [class.bg-secondary]="highlight() === i || opt.value === value()"
-              class="cursor-pointer px-3 py-1.5 flex items-center justify-between gap-3 hover:bg-secondary"
-            >
-              <span class="truncate">{{ opt.label || opt.value }}</span>
-              @if (opt.hint) {
-                <span class="text-[10px] text-muted-foreground font-mono shrink-0">{{
-                  opt.hint
-                }}</span>
-              }
-            </li>
-          }
-        </ul>
-      }
     </div>
+
+    <ng-template #panelTpl>
+      <ul
+        #panel
+        role="listbox"
+        class="fixed z-[1000] max-h-64 overflow-auto rounded-md border border-border bg-popover text-popover-foreground shadow-lg shadow-black/30 py-1 text-sm animate-fade-up"
+        [style.top.px]="panelRect().top"
+        [style.left.px]="panelRect().left"
+        [style.width.px]="panelRect().width"
+      >
+        @if (options().length === 0) {
+          <li class="px-3 py-2 text-xs text-muted-foreground">
+            {{ emptyHint() || 'No options' }}
+          </li>
+        }
+        @for (opt of options(); track opt.value; let i = $index) {
+          <li
+            role="option"
+            [attr.aria-selected]="opt.value === value() ? 'true' : 'false'"
+            (click)="pick(opt.value)"
+            (mouseenter)="highlight.set(i)"
+            [class.bg-secondary]="highlight() === i || opt.value === value()"
+            class="cursor-pointer px-3 py-1.5 flex items-center justify-between gap-3 hover:bg-secondary"
+          >
+            <span class="truncate">{{ opt.label || opt.value }}</span>
+            @if (opt.hint) {
+              <span class="text-[10px] text-muted-foreground font-mono shrink-0">{{
+                opt.hint
+              }}</span>
+            }
+          </li>
+        }
+      </ul>
+    </ng-template>
   `,
 })
-export class Select {
+export class Select implements AfterViewInit, OnDestroy {
   readonly options = input<readonly SelectOption[]>([]);
   readonly value = input<string>('');
   readonly placeholder = input<string>('Select…');
@@ -97,6 +109,21 @@ export class Select {
 
   protected readonly open = signal(false);
   protected readonly highlight = signal<number>(-1);
+  protected readonly panelRect = signal<{ top: number; left: number; width: number }>({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
+
+  @ViewChild('trigger', { static: true })
+  private readonly triggerRef!: ElementRef<HTMLButtonElement>;
+  @ViewChild('panelTpl', { static: true })
+  private readonly panelTpl!: TemplateRef<unknown>;
+
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly vcr = inject(ViewContainerRef);
+
+  private embeddedView?: EmbeddedViewRef<unknown>;
 
   protected readonly selectedLabel = computed(() => {
     const v = this.value();
@@ -105,31 +132,34 @@ export class Select {
     return match?.label || match?.value || v;
   });
 
-  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly onAnyScroll = (ev: Event): void => {
+    const panel = this.panelNode();
+    if (panel && ev.target instanceof Node && panel.contains(ev.target)) return;
+    this.open.set(false);
+  };
 
-  @HostListener('document:click', ['$event'])
-  protected onDocClick(ev: MouseEvent): void {
-    if (!this.open()) return;
-    if (!this.host.nativeElement.contains(ev.target as Node)) this.open.set(false);
+  constructor() {
+    effect(() => {
+      if (this.open()) this.attachPanel();
+      else this.detachPanel();
+    });
   }
 
-  @HostListener('document:keydown.escape')
-  protected onEscape(): void {
-    if (this.open()) this.open.set(false);
+  ngAfterViewInit(): void {}
+
+  ngOnDestroy(): void {
+    this.detachPanel();
   }
+
+  // Public API
 
   protected toggle(): void {
     if (this.disabled()) return;
     this.open.update((v) => !v);
-    if (this.open()) this.syncHighlightToSelection();
   }
 
   protected pick(v: string): void {
-    if (v === this.value()) {
-      this.open.set(false);
-      return;
-    }
-    this.valueChange.emit(v);
+    if (v !== this.value()) this.valueChange.emit(v);
     this.open.set(false);
   }
 
@@ -141,7 +171,6 @@ export class Select {
       if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp' || ev.key === 'Enter' || ev.key === ' ') {
         ev.preventDefault();
         this.open.set(true);
-        this.syncHighlightToSelection();
       }
       return;
     }
@@ -159,6 +188,73 @@ export class Select {
     }
   }
 
+  //  Host listeners
+
+  @HostListener('document:click', ['$event'])
+  protected onDocClick(ev: MouseEvent): void {
+    if (!this.open()) return;
+    const target = ev.target as Node;
+    if (this.host.nativeElement.contains(target)) return;
+    if (this.panelNode()?.contains(target)) return;
+    this.open.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    if (this.open()) this.open.set(false);
+  }
+
+  @HostListener('window:resize')
+  protected onWindowResize(): void {
+    if (this.open()) this.updatePanelRect();
+  }
+
+  // Internals
+
+  private attachPanel(): void {
+    if (this.embeddedView) return;
+    this.embeddedView = this.vcr.createEmbeddedView(this.panelTpl);
+    for (const node of this.embeddedView.rootNodes as Node[]) {
+      document.body.appendChild(node);
+    }
+    this.syncHighlightToSelection();
+    this.updatePanelRect();
+    this.embeddedView.detectChanges();
+    document.addEventListener('scroll', this.onAnyScroll, true);
+  }
+
+  /** Destroy the embedded view — Angular removes its nodes from the DOM. */
+  private detachPanel(): void {
+    if (!this.embeddedView) return;
+    document.removeEventListener('scroll', this.onAnyScroll, true);
+    this.embeddedView.destroy();
+    this.embeddedView = undefined;
+  }
+
+  /** Resolves the panel's root DOM node, if currently attached. */
+  private panelNode(): HTMLElement | undefined {
+    const node = this.embeddedView?.rootNodes?.[0];
+    return node instanceof HTMLElement ? node : undefined;
+  }
+
+  /**
+    Open the panel directly under the trigger, matching its width. 
+   */
+  private updatePanelRect(): void {
+    const el = this.triggerRef.nativeElement;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const gap = 4;
+    const margin = 8;
+    const left = Math.min(rect.left, window.innerWidth - rect.width - margin);
+    this.panelRect.set({
+      top: rect.bottom + gap,
+      left: Math.max(margin, left),
+      width: rect.width,
+    });
+  }
+
+  /** Surface the current selection as the highlighted row on open. */
   private syncHighlightToSelection(): void {
     const idx = this.options().findIndex((o) => o.value === this.value());
     this.highlight.set(idx >= 0 ? idx : 0);
