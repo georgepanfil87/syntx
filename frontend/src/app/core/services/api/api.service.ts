@@ -1,14 +1,14 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment.development';
+import { ENVIRONMENT } from '../../config/environment';
 
 export type QueryParams = Record<string, string | number | boolean | null | undefined>;
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  private readonly base = environment.apiBaseUrl;
+  private readonly base = ENVIRONMENT.apiBaseUrl;
 
   get<T>(path: string, params?: QueryParams): Observable<T> {
     return this.http.get<T>(this.url(path), { params: this.toParams(params) });

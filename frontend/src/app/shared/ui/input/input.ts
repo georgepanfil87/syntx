@@ -13,7 +13,7 @@ import { Icon } from '../icon/icon';
 let inputUid = 0;
 
 @Component({
-  selector: 'app-input',
+  selector: 'sx-input',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
