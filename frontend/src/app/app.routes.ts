@@ -35,6 +35,13 @@ export const routes: Routes = [
             (m) => m.Dashboard,
           ),
       },
+       {
+        path: 'projects',
+        loadComponent: () =>
+          import('./features/projects/pages/projects-list/projects-list').then(
+            (m) => m.ProjectsList,
+          ),
+      },
     ],
   },
 ];
