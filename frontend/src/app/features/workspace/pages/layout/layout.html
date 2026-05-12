@@ -1,0 +1,24 @@
+<div class="flex h-screen w-screen overflow-hidden bg-background">
+  <sx-sidebar
+    [sidebarWidth]="sidebarWidth()"
+    [compact]="compact()"
+    [backendStatus]="backendStatus()"
+    [navGroups]="navGroups"
+    [paletteKey]="paletteKey"
+    (openPalette)="openPalette()"
+    (reprobeBackend)="reprobeBackend()"
+    (logout)="logout()"
+  />
+
+  <sx-resizer
+    (start)="onResizeStart()"
+    (delta)="onResize($event)"
+    (commit)="onResizeCommit()"
+    (nudge)="onResizeNudge($event)"
+    aria-label="Resize sidebar"
+  />
+
+  <main class="hero-glow flex flex-col min-w-0 flex-1 min-h-0 overflow-y-auto">
+    <router-outlet />
+  </main>
+</div>
