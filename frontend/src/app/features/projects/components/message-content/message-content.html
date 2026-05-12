@@ -1,0 +1,64 @@
+@for (block of blocks(); track $index) {
+@if (block.kind === 'text') {
+<p class="whitespace-pre-wrap text-sm leading-relaxed">
+  @for (seg of parseInline(block.body); track $index) {
+  @switch (seg.kind) {
+  @case ('bold') {
+  <strong class="font-semibold">{{ seg.body }}</strong>
+  }
+  @case ('italic') {
+  <em class="italic">{{ seg.body }}</em>
+  }
+  @case ('code') {
+  <code class="font-mono text-[12px] px-1 py-0.5 rounded bg-secondary text-primary">{{ seg.body }}</code>
+  }
+  @default {
+  <span>{{ seg.body }}</span>
+  }
+  }
+  }
+</p>
+} @else {
+<div class="rounded-md border border-border my-2 overflow-hidden text-xs">
+  <header class="flex items-center justify-between px-3 py-1.5 bg-secondary/60 border-b border-border gap-3">
+    <span class="font-mono text-[11px] text-muted-foreground truncate">
+      @if (block.path) {
+      <span class="text-primary">{{ block.path }}</span>
+      @if (block.language) {
+      <span class="opacity-60"> · {{ block.language }}</span>
+      }
+      } @else if (openFilePath()) {
+      <span class="opacity-60">{{ block.language || 'code' }} · </span>
+      <span class="text-primary">{{ openFilePath() }}</span>
+      } @else {
+      {{ block.language || 'code' }}
+      }
+    </span>
+    <div class="flex items-center gap-1 shrink-0">
+      <button type="button"
+        class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+        (click)="onCopy(block)" aria-label="Copy code">
+        <sx-icon name="check" [size]="11" />
+        <span>Copy</span>
+      </button>
+      @if (block.path) {
+      <button type="button"
+        class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] text-primary hover:bg-primary/10 transition"
+        (click)="onApply(block, block.path)">
+        <sx-icon name="check" [size]="11" />
+        <span>Apply</span>
+      </button>
+      } @else if (openFilePath()) {
+      <button type="button"
+        class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] text-muted-foreground hover:text-primary hover:bg-primary/10 transition"
+        (click)="onApply(block, openFilePath()!)">
+        <sx-icon name="check" [size]="11" />
+        <span>Apply to current</span>
+      </button>
+      }
+    </div>
+  </header>
+  <code-block [body]="block.body" [language]="block.language || ''" />
+</div>
+}
+}

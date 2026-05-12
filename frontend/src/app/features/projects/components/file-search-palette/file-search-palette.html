@@ -1,0 +1,166 @@
+    @if (open()) {
+      <div
+        class="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] animate-fade-up"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Quick open file"
+        (click)="onBackdropClick($event)"
+        (keydown.escape)="close.emit()"
+      >
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-background/70 backdrop-blur-sm"></div>
+
+        <!-- Palette card -->
+        <div
+          class="relative w-full max-w-2xl mx-4 rounded-lg border border-border surface-elevated shadow-2xl overflow-hidden"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- Search input + mode toggle -->
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-border">
+            <sx-icon name="search" [size]="14" class="text-muted-foreground shrink-0" />
+            <input
+              #input
+              type="text"
+              [placeholder]="mode() === 'semantic'
+                ? i18n.t('quickOpen.semanticPlaceholder')
+                : i18n.t('quickOpen.placeholder')"
+              class="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground/60"
+              [ngModel]="query()"
+              (ngModelChange)="onQueryChange($event)"
+              (keydown)="onKeyDown($event)"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            @if (projectId()) {
+              <div class="inline-flex gap-0.5 border border-border rounded p-0.5">
+                <button
+                  type="button"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-medium transition"
+                  [class.bg-primary]="mode() === 'files'"
+                  [class.text-primary-foreground]="mode() === 'files'"
+                  [class.text-muted-foreground]="mode() !== 'files'"
+                  [title]="i18n.t('quickOpen.modeFilesTooltip')"
+                  (click)="setMode('files')"
+                >{{ i18n.t('quickOpen.modeFiles') }}</button>
+                <button
+                  type="button"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-medium transition"
+                  [class.bg-primary]="mode() === 'semantic'"
+                  [class.text-primary-foreground]="mode() === 'semantic'"
+                  [class.text-muted-foreground]="mode() !== 'semantic'"
+                  [title]="i18n.t('quickOpen.modeCodeTooltip')"
+                  (click)="setMode('semantic')"
+                >{{ i18n.t('quickOpen.modeCode') }}</button>
+              </div>
+            }
+            <kbd
+              class="inline-flex items-center px-1.5 py-0.5 rounded border border-border bg-secondary/40 text-[9px] text-muted-foreground"
+            >
+              Esc
+            </kbd>
+          </div>
+
+          <!-- Results -->
+          <ul
+            #list
+            class="max-h-[50vh] overflow-auto py-1"
+            role="listbox"
+          >
+            @for (r of results(); track r.path; let i = $index) {
+              <li
+                [attr.data-result-index]="i"
+                [attr.aria-selected]="i === selectedIndex()"
+              >
+                <button
+                  type="button"
+                  class="w-full flex items-center gap-2 px-4 py-2 text-left transition"
+                  [class.bg-secondary]="i === selectedIndex()"
+                  [class.text-primary]="i === selectedIndex()"
+                  (mouseenter)="selectedIndex.set(i)"
+                  (click)="onPick(r.path)"
+                >
+                  <sx-icon
+                    [name]="iconFor(r.path)"
+                    [size]="13"
+                    class="shrink-0"
+                  />
+                  <div class="flex-1 min-w-0">
+                    
+                    @if (r.nameSegs) {
+                      <div class="text-sm leading-tight">
+                        @for (seg of r.nameSegs; track $index) {
+                          @if (seg.hit) {
+                            <span class="text-primary font-semibold">{{ seg.text }}</span>
+                          } @else {
+                            <span>{{ seg.text }}</span>
+                          }
+                        }
+                      </div>
+                      @if (r.dir) {
+                        <div class="text-[10px] text-muted-foreground font-mono truncate">
+                          {{ r.dir }}
+                        </div>
+                      }
+                    } @else {
+                      <div class="flex items-baseline gap-2">
+                        <span class="text-sm font-mono truncate">{{ r.path }}</span>
+                        @if (r.startLine && r.startLine > 0) {
+                          <span class="text-[10px] text-muted-foreground shrink-0">
+                            L{{ r.startLine }}@if (r.endLine && r.endLine !== r.startLine) {-{{ r.endLine }}}
+                          </span>
+                        }
+                      </div>
+                      @if (r.snippet) {
+                        <div class="text-[11px] text-muted-foreground font-mono truncate">
+                          {{ r.snippet }}
+                        </div>
+                      }
+                    }
+                  </div>
+                </button>
+              </li>
+            }
+            @if (results().length === 0) {
+              <li class="px-4 py-8 text-center text-sm text-muted-foreground italic">
+                @if (searching()) {
+                  <span class="inline-flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    {{ i18n.t('quickOpen.searching') }}
+                  </span>
+                } @else if (searchError()) {
+                  <span class="text-destructive">{{ searchError() }}</span>
+                } @else if (query().trim()) {
+                  {{ i18n.t('quickOpen.noMatch', { query: query() }) }}
+                } @else {
+                  {{ i18n.t('quickOpen.typeToSearch') }}
+                }
+              </li>
+            }
+          </ul>
+
+          <!-- Footer hint -->
+          <div
+            class="flex items-center justify-between gap-3 px-4 py-2 border-t border-border text-[10px] text-muted-foreground"
+          >
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="inline-flex items-center gap-1">
+                <kbd
+                  class="inline-flex items-center px-1 py-px rounded border border-border bg-secondary/40 text-[9px]"
+                >&uarr;</kbd>
+                <kbd
+                  class="inline-flex items-center px-1 py-px rounded border border-border bg-secondary/40 text-[9px]"
+                >&darr;</kbd>
+                {{ i18n.t('quickOpen.navigate') }}
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <kbd
+                  class="inline-flex items-center px-1 py-px rounded border border-border bg-secondary/40 text-[9px]"
+                >&crarr;</kbd>
+                {{ i18n.t('quickOpen.open') }}
+              </span>
+            </div>
+            <span>{{ results().length === 1 ? i18n.t('quickOpen.matches', { count: results().length }) : i18n.t('quickOpen.matchesPlural', { count: results().length }) }}</span>
+          </div>
+        </div>
+      </div>
+    }

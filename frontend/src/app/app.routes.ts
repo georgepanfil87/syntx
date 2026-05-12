@@ -35,6 +35,22 @@ export const routes: Routes = [
             (m) => m.Dashboard,
           ),
       },
+       {
+        path: 'projects',
+        loadComponent: () =>
+          import('./features/projects/pages/projects-list/projects-list').then(
+            (m) => m.ProjectsList,
+          ),
+      },
     ],
   },
+   {
+    path: 'workspace/projects/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import(
+        './features/workspace/pages/project-workspace/project-workspace'
+      ).then((m) => m.ProjectWorkspace),
+  },
+  { path: '**', redirectTo: '' },
 ];

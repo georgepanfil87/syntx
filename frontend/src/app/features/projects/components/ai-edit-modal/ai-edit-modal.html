@@ -1,0 +1,113 @@
+  <sx-modal
+      [open]="open()"
+      [title]="title()"
+      size="xl"
+      (close)="cancel()"
+    >
+      @if (file(); as f) {
+        <!-- Path subheader, shared by all phases -->
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <p class="text-xs text-muted-foreground font-mono break-all flex-1">
+            {{ f.path }}
+          </p>
+          @if (phase() === 'review') {
+            <div class="flex items-center gap-3 text-[10px] text-muted-foreground shrink-0">
+              <span class="inline-flex items-center gap-1">
+                <span class="w-2 h-2 rounded-sm bg-muted-foreground/70"></span>
+                {{ i18n.t('applyDiff.current') }}
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <span class="w-2 h-2 rounded-sm bg-primary"></span>
+                {{ i18n.t('applyDiff.result') }}
+              </span>
+            </div>
+          }
+        </div>
+
+        @switch (phase()) {
+          @case ('prompt') {
+            <div class="space-y-2">
+              <label class="text-xs text-muted-foreground" for="ai-edit-prompt">
+                {{ i18n.t('aiEdit.describeLabel') }}
+              </label>
+              <textarea
+                id="ai-edit-prompt"
+                autofocus
+                rows="4"
+                class="w-full text-sm bg-background border border-border rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-ring resize-y min-h-[6rem]"
+                [placeholder]="examplePlaceholder()"
+                [ngModel]="prompt()"
+                (ngModelChange)="prompt.set($event)"
+                (keydown.control.enter)="generate()"
+                (keydown.meta.enter)="generate()"
+              ></textarea>
+              <p class="text-[10px] text-muted-foreground">
+                {{ i18n.t('aiEdit.generateHint') }}
+              </p>
+            </div>
+          }
+
+          @case ('streaming') {
+            <div class="space-y-2">
+              <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                <span class="inline-block w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                <span>{{ i18n.t('aiEdit.generating') }}</span>
+                <span class="font-mono text-[10px]">{{ i18n.t('aiEdit.chars', { count: streamed().length }) }}</span>
+              </div>
+              <pre
+                class="rounded-md border border-border bg-background/60 p-3 text-[11px] font-mono whitespace-pre-wrap max-h-[55vh] overflow-auto"
+              >{{ streamed() }}</pre>
+            </div>
+          }
+
+          @case ('review') {
+            <div class="rounded-md border border-border overflow-hidden h-[55vh] min-h-[18rem]">
+              <monaco-diff
+                [original]="f.content"
+                [modified]="proposed()"
+                [language]="language()"
+                [theme]="themeSvc.monacoTheme()"
+              />
+            </div>
+            @if (proposedTrimmed().length === 0) {
+              <p class="text-[11px] text-amber-300 mt-2">
+                {{ i18n.t('aiEdit.emptyResponse') }}
+              </p>
+            }
+          }
+
+          @case ('error') {
+            <div class="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+              {{ errorMsg() }}
+            </div>
+          }
+        }
+      }
+
+      <div slot="footer">
+        @switch (phase()) {
+          @case ('prompt') {
+            <sx-button variant="ghost" (click)="cancel()">{{ i18n.t('common.cancel') }}</sx-button>
+            <sx-button (click)="generate()" [disabled]="!canGenerate()">
+              <sx-icon name="arrow-right" [size]="12" />
+              <span>{{ i18n.t('aiEdit.generate') }}</span>
+            </sx-button>
+          }
+          @case ('streaming') {
+            <sx-button variant="ghost" (click)="abort()">{{ i18n.t('aiEdit.stop') }}</sx-button>
+          }
+          @case ('review') {
+            <sx-button variant="ghost" (click)="phase.set('prompt')">
+              {{ i18n.t('aiEdit.tryAgain') }}
+            </sx-button>
+            <sx-button (click)="apply()" [disabled]="proposedTrimmed().length === 0">
+              {{ i18n.t('aiEdit.applyChanges') }}
+            </sx-button>
+          }
+          @case ('error') {
+            <sx-button variant="ghost" (click)="cancel()">{{ i18n.t('common.close') }}</sx-button>
+            <sx-button (click)="phase.set('prompt')">{{ i18n.t('aiEdit.tryAgain') }}</sx-button>
+          }
+        }
+      </div>
+    </sx-modal>

@@ -32,31 +32,6 @@ export class ChatApi {
     return this.api.get<ChatMessageList>(`/chat/sessions/${sessionId}/messages`);
   }
 
-  /**
-   * Stream a project-aware chat reply.
-   *
-   * `EventSource` won't do — we need:
-   *   1. POST + JSON body (EventSource is GET-only).
-   *   2. The bearer token in `Authorization` (EventSource lacks
-   *      header support before the polyfill dance).
-   *
-   * So this hand-rolls SSE on top of `fetch` + `ReadableStream`. The
-   * returned Observable yields one `ChatStreamEvent` per parsed
-   * frame and completes on `done`. Cancellation: the inner
-   * `AbortController` fires when the subscription tears down, which
-   * propagates back to the server via the closed connection.
-   *
-   * Frame format (matches `backend/app/api/v1/ai.py`):
-   *   event: session\n
-   *   data: {"session_id": "..."}\n
-   *   \n
-   *   event: token\n
-   *   data: {"token": "..."}\n
-   *   \n
-   *   event: done\n
-   *   data: {}\n
-   *   \n
-   */
   streamProjectChat(projectId: string, body: ProjectChatRequest): Observable<ChatStreamEvent> {
     const url = `${ENVIRONMENT.apiBaseUrl}/ai/projects/${projectId}/chat`;
     const token = this.tokens.read();
@@ -93,12 +68,6 @@ export class ChatApi {
     return this.api.delete<void>(`/chat/sessions/${sessionId}`);
   }
 
-  /**
-   * Fetch the export as a JSON blob plus a filename suggestion. We
-   * read the `Content-Disposition` header when present and fall back
-   * to a stable client-side default — the server is the source of
-   * truth for the filename, but we shouldn't crash if it's missing.
-   */
   exportSession(sessionId: string): Observable<ExportedSession> {
     const url = `${ENVIRONMENT.apiBaseUrl}/chat/sessions/${sessionId}/export`;
     return this.http.get(url, { observe: 'response', responseType: 'blob' }).pipe(
@@ -127,11 +96,6 @@ interface StreamRunArgs {
   error: (err: unknown) => void;
 }
 
-/**
- * Drives the fetch + ReadableStream loop. Errors are forwarded to the
- * subscriber; an aborted request swallows the AbortError so the
- * Observable just completes silently (the caller asked us to stop).
- */
 async function runStream(args: StreamRunArgs): Promise<void> {
   try {
     const res = await fetch(args.url, {

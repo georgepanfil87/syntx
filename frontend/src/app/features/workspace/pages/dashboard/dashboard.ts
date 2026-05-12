@@ -40,14 +40,11 @@ export class Dashboard implements OnInit {
 
   protected readonly projectCount = computed(() => this.projects().length);
 
-  /** Top 5 most recently updated projects, for the "Recent" card. */
   protected readonly recentProjects = computed(() => {
     return [...this.projects()].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1)).slice(0, 5);
   });
 
   ngOnInit(): void {
-    // Warm both caches in parallel — the projects slice is shared
-    // with `/workspace/projects`, the metrics fetch is one-shot.
     this.store.dispatch(ProjectsActions.loadProjects({}));
 
     this.metricsLoading.set(true);
@@ -57,7 +54,6 @@ export class Dashboard implements OnInit {
         this.metricsLoading.set(false);
       },
       error: () => {
-        // Silent — the tiles fall back to "—" via formatters.
         this.metricsLoading.set(false);
       },
     });
@@ -84,7 +80,7 @@ export class Dashboard implements OnInit {
     );
   }
 
-  // ── Formatters ──
+  //  Formatters
   protected formatMs(ms: number | undefined | null): string {
     if (ms == null || !Number.isFinite(ms) || ms === 0) return '—';
     if (ms < 1) return `${ms.toFixed(2)}ms`;
