@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Card, Select, SelectOption } from "../../../../shared/ui";
+import { Card, Select, SelectOption } from '../../../../shared/ui';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { ModelsService } from '../../../../core/services/models/models.service';
 import { PreferencesService } from '../../../../core/services/preferences/preferences.service';
 import { formatSize } from '../chat-section/chat-section';
-
+import { isGenerativeModel } from '../../../../core/utils/model-capability';
 
 @Component({
   selector: 'settings-editor',
@@ -13,7 +13,9 @@ import { formatSize } from '../chat-section/chat-section';
   imports: [Card, Select],
   template: `
     <sx-card variant="elevated">
-      <header slot="header"><h2 class="text-sm font-semibold">{{ i18n.t('settings.editor') }}</h2></header>
+      <header slot="header">
+        <h2 class="text-sm font-semibold">{{ i18n.t('settings.editor') }}</h2>
+      </header>
 
       <div class="space-y-3">
         <label class="flex items-center justify-between gap-3">
@@ -42,7 +44,9 @@ import { formatSize } from '../chat-section/chat-section';
         </label>
 
         <label class="block space-y-1">
-          <span class="text-xs text-muted-foreground">{{ i18n.t('settings.completionModel') }}</span>
+          <span class="text-xs text-muted-foreground">{{
+            i18n.t('settings.completionModel')
+          }}</span>
           <sx-select
             [options]="modelOptions()"
             [value]="prefs.completionModel()"
@@ -62,10 +66,12 @@ export class EditorSection {
   protected readonly i18n = inject(I18nService);
 
   protected readonly modelOptions = computed<SelectOption[]>(() =>
-    (this.models.data()?.items ?? []).map((m) => ({
-      value: m.name,
-      label: m.name,
-      hint: formatSize(m.size_bytes),
-    })),
+    (this.models.data()?.items ?? [])
+      .filter((m) => isGenerativeModel(m.name))
+      .map((m) => ({
+        value: m.name,
+        label: m.name,
+        hint: formatSize(m.size_bytes),
+      })),
   );
 }

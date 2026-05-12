@@ -3,6 +3,7 @@ import { Card, Select, SelectOption } from "../../../../shared/ui";
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { ModelsService } from '../../../../core/services/models/models.service';
 import { PreferencesService } from '../../../../core/services/preferences/preferences.service';
+import { isGenerativeModel } from '../../../../core/utils/model-capability';
 
 @Component({
   selector: 'settings-chat',
@@ -32,11 +33,13 @@ export class ChatSection{
   protected readonly i18n = inject(I18nService);
 
   protected readonly modelOptions = computed<SelectOption[]>(() =>
-    (this.models.data()?.items ?? []).map((m) => ({
-      value: m.name,
-      label: m.name,
-      hint: formatSize(m.size_bytes),
-    })),
+    (this.models.data()?.items ?? [])
+      .filter((m) => isGenerativeModel(m.name))
+      .map((m) => ({
+        value: m.name,
+        label: m.name,
+        hint: formatSize(m.size_bytes),
+      })),
   );
 }
 

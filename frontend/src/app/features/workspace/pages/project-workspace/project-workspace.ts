@@ -35,6 +35,7 @@ import { AiEditModal } from "../../../projects/components/ai-edit-modal/ai-edit-
 import { FileSearchPalette } from "../../../projects/components/file-search-palette/file-search-palette";
 import { ChatSendPayload } from '../../../projects/components/chat-composer/chat-composer';
 import { ApplyCodeBlockEvent } from '../../../projects/components/message-content/message-content';
+import { isGenerativeModel } from '../../../../core/utils/model-capability';
 
 @Component({
   selector: 'app-project-workspace',
@@ -65,7 +66,7 @@ export class ProjectWorkspace {
   );
 
   protected readonly availableModels = computed(
-    () => this.modelsSvc.data()?.items ?? [],
+    () => (this.modelsSvc.data()?.items ?? []).filter((m) => isGenerativeModel(m.name)),
   );
   protected readonly defaultChatModel = computed(
     () => this.modelsSvc.data()?.default_model ?? this.prefs.chatModel(),
