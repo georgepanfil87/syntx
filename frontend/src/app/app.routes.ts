@@ -26,8 +26,15 @@ export const routes: Routes = [
       import('./features/workspace/pages/layout/layout').then(
         (m) => m.Layout,
       ),
-    // children: [
-    
-    // ],
+    children: [
+     {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/workspace/pages/dashboard/dashboard').then(
+            (m) => m.Dashboard,
+          ),
+      },
+    ],
   },
 ];

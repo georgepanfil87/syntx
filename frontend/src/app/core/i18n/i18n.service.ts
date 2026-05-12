@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { Lang, DICTIONARIES, EN } from './dictionaries';
+import { Lang, DICTIONARIES } from './dictionaries';
+import { EN } from './en-dictionary';
 
 
 @Injectable({ providedIn: 'root' })

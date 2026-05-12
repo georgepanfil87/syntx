@@ -1,0 +1,187 @@
+  <div class="max-w-6xl mx-auto p-6 space-y-6 animate-fade-up">
+      <!-- ── Hero ─────────────────────────────────────────────── -->
+      <header>
+        <p class="text-xs uppercase tracking-[0.3em] text-primary">{{ i18n.t('dashboard.tagline') }}</p>
+        <h1 class="text-3xl sm:text-4xl font-semibold mt-1 leading-tight">
+          <span class="gradient-text"
+            >{{ greeting() }},
+            <span class="text-foreground">{{ userName(auth.currentUser()?.email) }}</span
+            >.
+          </span>
+        </h1>
+        <!-- @if (auth.currentUser(); as user) {
+          <p class="text-sm text-muted-foreground mt-1">
+            Signed in as <span class="text-foreground">{{ user.email }}</span>.
+          </p>
+        } -->
+      </header>
+
+      <!-- ── Stats strip ──────────────────────────────────────── -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <sx-card variant="elevated">
+          <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ i18n.t('dashboard.tileProjects') }}</p>
+          <p class="text-2xl font-semibold mt-1 font-mono">{{ projectCount() }}</p>
+          <p class="text-[10px] text-muted-foreground mt-1">{{ i18n.t('dashboard.tileProjectsHint') }}</p>
+        </sx-card>
+
+        <sx-card variant="elevated">
+          <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ i18n.t('dashboard.tileRequests') }}</p>
+          <p class="text-2xl font-semibold mt-1 font-mono">
+            {{ metrics()?.overall?.count ?? '—' }}
+          </p>
+          <p class="text-[10px] text-muted-foreground mt-1">{{ i18n.t('dashboard.tileRequestsHint') }}</p>
+        </sx-card>
+
+        <sx-card variant="elevated">
+          <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ i18n.t('dashboard.tileP50') }}</p>
+          <p class="text-2xl font-semibold mt-1 font-mono">
+            {{ formatMs(metrics()?.overall?.p50_ms) }}
+          </p>
+          <p class="text-[10px] text-muted-foreground mt-1">
+            p95 {{ formatMs(metrics()?.overall?.p95_ms) }}
+          </p>
+        </sx-card>
+
+        <sx-card variant="elevated">
+          <p class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ i18n.t('dashboard.tileSuccess') }}</p>
+          <p class="text-2xl font-semibold mt-1 font-mono">
+            {{ formatPercent(metrics()?.overall?.success_rate) }}
+          </p>
+          <p class="text-[10px] text-muted-foreground mt-1">
+            {{ metricsLoading() ? i18n.t('dashboard.tileFetching') : i18n.t('dashboard.tileSuccessHint') }}
+          </p>
+        </sx-card>
+      </div>
+
+      <!-- ── Body ─────────────────────────────────────────────── -->
+      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-4">
+        <!-- Recent projects -->
+        <sx-card variant="elevated">
+          <header slot="header" class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold">{{ i18n.t('dashboard.recentProjects') }}</h2>
+            <a
+              routerLink="/workspace/projects"
+              class="text-xs text-primary hover:underline inline-flex items-center gap-1"
+            >
+              View all
+              <sx-icon name="chevron-right" [size]="12" />
+            </a>
+          </header>
+
+          @if (projectsLoading() && recentProjects().length === 0) {
+            <div class="space-y-2">
+              @for (i of [1, 2, 3]; track i) {
+                <div class="h-12 rounded animate-shimmer"></div>
+              }
+            </div>
+          } @else if (recentProjects().length === 0) {
+            <div class="py-6 text-center text-sm text-muted-foreground">
+              <p>{{ i18n.t('dashboard.noProjects') }}</p>
+              <a
+                routerLink="/workspace/projects"
+                class="text-primary hover:underline mt-2 inline-flex items-center gap-1"
+              >
+                Create your first project
+                <sx-icon name="chevron-right" [size]="12" />
+              </a>
+            </div>
+          } @else {
+            <ul class="divide-y divide-border -mx-1">
+              @for (p of recentProjects(); track p.id) {
+                <li>
+                  <a
+                    [routerLink]="['/workspace/projects', p.id]"
+                    class="flex items-center justify-between gap-3 px-1 py-2.5 rounded-md hover:bg-secondary transition group"
+                  >
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium truncate">{{ p.name }}</p>
+                      <p class="text-[10px] text-muted-foreground font-mono truncate mt-0.5">
+                        {{ p.id }}
+                      </p>
+                    </div>
+                    <span class="text-[10px] text-muted-foreground shrink-0 hidden sm:inline">
+                      {{ relativeTime(p.updated_at) }}
+                    </span>
+                    <sx-icon
+                      name="chevron-right"
+                      [size]="14"
+                      class="text-muted-foreground group-hover:text-primary transition shrink-0"
+                    />
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </sx-card>
+
+        <!-- Quick actions -->
+        <sx-card variant="elevated">
+          <header slot="header" class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold">{{ i18n.t('dashboard.quickActions') }}</h2>
+            <sx-badge variant="info">live</sx-badge>
+          </header>
+
+          <ul class="space-y-1">
+            <li>
+              <a
+                routerLink="/workspace/projects"
+                class="flex items-center justify-between gap-3 px-2 py-2 rounded-md hover:bg-secondary transition group"
+              >
+                <span class="flex items-center gap-2 text-sm">
+                  <sx-icon name="folder" [size]="14" class="text-primary" />
+                  Open Projects
+                </span>
+                <sx-icon
+                  name="chevron-right"
+                  [size]="12"
+                  class="text-muted-foreground group-hover:text-primary transition"
+                />
+              </a>
+            </li>
+            <li>
+              <a
+                routerLink="/workspace/settings"
+                class="flex items-center justify-between gap-3 px-2 py-2 rounded-md hover:bg-secondary transition group"
+              >
+                <span class="flex items-center gap-2 text-sm">
+                  <sx-icon name="settings" [size]="14" class="text-primary" />
+                  Configure models
+                </span>
+                <sx-icon
+                  name="chevron-right"
+                  [size]="12"
+                  class="text-muted-foreground group-hover:text-primary transition"
+                />
+              </a>
+            </li>
+            <li>
+              <a
+                routerLink="/workspace/admin/metrics"
+                class="flex items-center justify-between gap-3 px-2 py-2 rounded-md hover:bg-secondary transition group"
+              >
+                <span class="flex items-center gap-2 text-sm">
+                  <sx-icon name="chart-line" [size]="14" class="text-primary" />
+                  View metrics
+                </span>
+                <sx-icon
+                  name="chevron-right"
+                  [size]="12"
+                  class="text-muted-foreground group-hover:text-primary transition"
+                />
+              </a>
+            </li>
+          </ul>
+
+          <div class="border-t border-border mt-4 pt-3 text-[10px] text-muted-foreground space-y-1">
+            <p class="flex items-center gap-2">
+              <kbd class="font-mono bg-secondary px-1 py-0.5 rounded">⌘K</kbd>
+              command palette
+            </p>
+            <p class="flex items-center gap-2">
+              <kbd class="font-mono bg-secondary px-1 py-0.5 rounded">?</kbd>
+              keyboard shortcuts
+            </p>
+          </div>
+        </sx-card>
+      </div>
+    </div>
