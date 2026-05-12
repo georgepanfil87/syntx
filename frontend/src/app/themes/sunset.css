@@ -1,0 +1,85 @@
+/*
+ * Sunset — warm orange + magenta. Lower blue-light exposure than
+ * Midnight; some users prefer it for evening work.
+ */
+.theme-sunset.dark {
+  --background: 20 22% 6%;
+  --foreground: 35 25% 95%;
+
+  --card: 18 20% 10%;
+  --card-foreground: 35 25% 95%;
+
+  --popover: 18 20% 10%;
+  --popover-foreground: 35 25% 95%;
+
+  --primary: 20 88% 58%;
+  --primary-foreground: 20 22% 6%;
+
+  --secondary: 18 18% 14%;
+  --secondary-foreground: 35 25% 92%;
+
+  --muted: 18 15% 17%;
+  --muted-foreground: 25 12% 60%;
+
+  --accent: 330 78% 62%;
+  --accent-foreground: 35 25% 95%;
+
+  --destructive: 0 80% 60%;
+  --destructive-foreground: 35 25% 95%;
+
+  --border: 18 15% 18%;
+  --input: 18 15% 18%;
+  --ring: 20 88% 58%;
+
+  --gradient-primary: linear-gradient(135deg, hsl(20 88% 58%) 0%, hsl(330 78% 62%) 100%);
+  --gradient-hero: radial-gradient(ellipse at top, hsl(20 88% 58% / 0.12) 0%, transparent 50%);
+  --gradient-card: linear-gradient(145deg, hsl(18 20% 12%) 0%, hsl(20 22% 7%) 100%);
+  --gradient-text: linear-gradient(135deg, hsl(20 90% 65%) 0%, hsl(330 80% 70%) 100%);
+  --gradient-code: linear-gradient(135deg, hsl(20 88% 58% / 0.10) 0%, hsl(330 78% 62% / 0.10) 100%);
+
+  --shadow-card: 0 4px 24px hsl(20 30% 2% / 0.45);
+  --shadow-elevated: 0 8px 40px hsl(20 30% 2% / 0.55);
+  --shadow-glow: 0 0 60px hsl(20 88% 58% / 0.22);
+  --shadow-glow-accent: 0 0 40px hsl(330 78% 62% / 0.22);
+}
+
+.theme-sunset.light {
+  --background: 35 30% 97%;
+  --foreground: 20 30% 12%;
+
+  --card: 35 35% 100%;
+  --card-foreground: 20 30% 12%;
+
+  --popover: 35 35% 100%;
+  --popover-foreground: 20 30% 12%;
+
+  --primary: 20 88% 45%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 35 25% 92%;
+  --secondary-foreground: 20 30% 18%;
+
+  --muted: 35 22% 90%;
+  --muted-foreground: 20 12% 42%;
+
+  --accent: 330 72% 48%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 75% 48%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 35 20% 84%;
+  --input: 35 20% 84%;
+  --ring: 20 88% 45%;
+
+  --gradient-primary: linear-gradient(135deg, hsl(20 88% 45%) 0%, hsl(330 72% 48%) 100%);
+  --gradient-hero: radial-gradient(ellipse at top, hsl(20 88% 45% / 0.10) 0%, transparent 50%);
+  --gradient-card: linear-gradient(145deg, hsl(35 35% 100%) 0%, hsl(35 30% 96%) 100%);
+  --gradient-text: linear-gradient(135deg, hsl(20 88% 42%) 0%, hsl(330 72% 45%) 100%);
+  --gradient-code: linear-gradient(135deg, hsl(20 88% 45% / 0.08) 0%, hsl(330 72% 48% / 0.08) 100%);
+
+  --shadow-card: 0 4px 24px hsl(20 30% 20% / 0.10);
+  --shadow-elevated: 0 8px 40px hsl(20 30% 20% / 0.14);
+  --shadow-glow: 0 0 60px hsl(20 88% 45% / 0.18);
+  --shadow-glow-accent: 0 0 40px hsl(330 72% 48% / 0.18);
+}
