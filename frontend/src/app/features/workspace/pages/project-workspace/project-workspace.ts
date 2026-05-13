@@ -1,7 +1,7 @@
 import { Component, computed, effect, ElementRef, HostListener, inject, signal, untracked, ViewChild } from '@angular/core';
 import { Logo, Icon, Button, Resizer, IconName } from '../../../../shared/ui';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { map } from 'rxjs';
@@ -39,7 +39,7 @@ import { isGenerativeModel } from '../../../../core/utils/model-capability';
 
 @Component({
   selector: 'app-project-workspace',
-  imports: [Logo, Icon, Button, Resizer, ActivityBar, FileTree, GitPanel, EmptyState, FileEditor, ChatPane, TerminalModal, ChatSessionRenameModal, ApplyDiffModal, AiEditModal, FileSearchPalette],
+  imports: [Logo, Icon, Button, Resizer, ActivityBar, FileTree, GitPanel, EmptyState, FileEditor, ChatPane, TerminalModal, ChatSessionRenameModal, ApplyDiffModal, AiEditModal, FileSearchPalette, RouterModule],
   templateUrl: './project-workspace.html',
   styleUrl: './project-workspace.css',
   host: { class: 'flex flex-col h-screen w-screen overflow-hidden hero-glow' },
