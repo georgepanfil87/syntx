@@ -36,19 +36,11 @@ _COMPLETE_READ_TIMEOUT_SECONDS = 60.0
 
 class OllamaUnavailable(Exception):
     """Raised when Ollama cannot be reached or returns malformed data.
-
-    One exception class on purpose: the API layer does not need to
-    distinguish "connection refused" from "HTTP 502" — both collapse to
-    `503 Service Unavailable` at the HTTP boundary.
     """
 
 
 class OllamaModel(BaseModel):
     """Typed projection of one row from Ollama's `/api/tags` response.
-
-    Ollama returns a number of extra fields (`digest`, `details.*`,
-    `format`, ...) that we deliberately ignore here. Adding them is a
-    schema-only change when a caller needs them.
     """
 
     name: str = Field(description="Model identifier, e.g. `qwen2.5-coder:1.5b`.")
@@ -86,11 +78,6 @@ class OllamaClient:
 
     async def list_models(self) -> list[OllamaModel]:
         """Return every model currently installed in Ollama.
-
-        Raises `OllamaUnavailable` if the daemon is unreachable OR the
-        response body does not match the expected shape (protects the
-        API layer from crashing on a newer Ollama schema we haven't
-        reviewed yet).
         """
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
@@ -133,12 +120,6 @@ class OllamaClient:
         messages: Sequence[dict[str, str]],
     ) -> AsyncIterator[str]:
         """Yield `assistant` content fragments as Ollama generates them.
-
-        Wraps `POST /api/chat` with `stream=true`. Ollama returns
-        NDJSON: one JSON object per line. Each object carries a
-        `message.content` fragment and a `done` boolean that flips to
-        `True` on the final line (along with timing stats we currently
-        ignore).
         """
         payload = {"model": model, "messages": list(messages), "stream": True}
         timeout = httpx.Timeout(
@@ -198,22 +179,6 @@ class OllamaClient:
         stop: Sequence[str] | None = None,
     ) -> str:
         """Single-shot completion via Ollama's `/api/generate`.
-
-        Used by inline-completion (STEP 42): editor sends prefix +
-        optional suffix → Ollama returns ONE short continuation.
-        Streaming would be wasted here — the editor needs the full
-        suggestion as an atomic ghost-text insertion, not token-by-token.
-
-        `suffix` enables Ollama's fill-in-the-middle (FIM) mode for
-        models that support it (qwen2.5-coder does). Without it, the
-        model only sees what comes BEFORE the cursor; with it, the
-        model is told what's after, letting it close brackets, return
-        early, etc.
-
-        `num_predict` caps the generated length — completions are
-        meant to be short bursts (default ~64 tokens), not essays.
-        Stops short-circuit on common boundaries (newlines for line
-        completions, end-of-statement markers for FIM).
         """
         payload: dict[str, Any] = {
             "model": model,
