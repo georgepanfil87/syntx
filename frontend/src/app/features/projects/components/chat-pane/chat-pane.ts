@@ -24,6 +24,9 @@ import { ApplyCodeBlockEvent } from '../message-content/message-content';
   templateUrl: './chat-pane.html',
   styleUrl: './chat-pane.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+  class: 'flex flex-col h-full min-h-0',
+},
 })
 export class ChatPane {
   // Inputs

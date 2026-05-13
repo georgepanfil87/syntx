@@ -19,7 +19,7 @@ export class FileEditor {
   readonly loading = input<boolean>(false);
   readonly saving = input<boolean>(false);
   readonly language = input<string>('plaintext');
-  readonly enableInlineCompletions = input<boolean>(true);
+  readonly enableInlineCompletions = input<boolean>(false);
   readonly completionModel = input<string>('qwen2.5-coder:1.5b');
   /** Resolved theme — `vs-dark` / `vs`. Wired from `ThemeService` upstream. */
   readonly monacoTheme = input<'vs-dark' | 'vs'>('vs-dark');

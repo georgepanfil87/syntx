@@ -1,6 +1,6 @@
 @for (block of blocks(); track $index) {
 @if (block.kind === 'text') {
-<p class="whitespace-pre-wrap text-sm leading-relaxed">
+<p class="whitespace-pre-wrap break-words overflow-wrap-anywhere text-sm leading-relaxed min-w-0">
   @for (seg of parseInline(block.body); track $index) {
   @switch (seg.kind) {
   @case ('bold') {
@@ -19,9 +19,9 @@
   }
 </p>
 } @else {
-<div class="rounded-md border border-border my-2 overflow-hidden text-xs">
-  <header class="flex items-center justify-between px-3 py-1.5 bg-secondary/60 border-b border-border gap-3">
-    <span class="font-mono text-[11px] text-muted-foreground truncate">
+<div class="rounded-md border border-border my-2 overflow-hidden text-xs min-w-0 max-w-full">
+  <header class="flex items-center justify-between px-3 py-1.5 bg-secondary/60 border-b border-border gap-3 min-w-0">
+    <span class="font-mono text-[11px] text-muted-foreground truncate min-w-0">
       @if (block.path) {
       <span class="text-primary">{{ block.path }}</span>
       @if (block.language) {

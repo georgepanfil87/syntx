@@ -14,18 +14,33 @@ import { loadMonaco } from '../monaco-editor/monaco-loader';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <pre #host class="font-mono text-[11px] leading-snug p-3 overflow-x-auto bg-background m-0">{{
+    <pre #host class="font-mono text-[11px] leading-snug p-3 bg-background m-0
+           min-w-0 max-w-full overflow-auto
+           whitespace-pre-wrap break-words">{{
       body()
     }}</pre>
   `,
   styles: [
     `
       :host {
-        display: block;
-      }
-      :host ::ng-deep pre .mtk1 {
-        color: hsl(var(--foreground));
-      }
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    :host ::ng-deep pre {
+      white-space: pre-wrap !important;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    :host ::ng-deep pre span {
+      white-space: inherit !important;
+    }
+
+    :host ::ng-deep pre .mtk1 {
+      color: hsl(var(--foreground));
+    }
     `,
   ],
 })

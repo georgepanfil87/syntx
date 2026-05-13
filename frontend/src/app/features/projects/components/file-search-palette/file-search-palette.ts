@@ -7,10 +7,11 @@ import { IconName, iconForPath } from '../../../../shared/icons';
 import { FormsModule } from '@angular/forms';
 import { Icon } from '../../../../shared/ui';
 import { SearchApi, SearchHit } from '../../../../core/services/search/search-api.service';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'file-search-palette',
-  imports: [FormsModule, Icon],
+  imports: [FormsModule, Icon, RouterModule],
   templateUrl: './file-search-palette.html',
   styleUrl: './file-search-palette.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

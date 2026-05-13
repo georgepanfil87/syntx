@@ -26,7 +26,7 @@ export interface PersistedPreferences {
 
 export const TREE_PANE_MIN = 180;
 export const TREE_PANE_MAX = 520;
-export const CHAT_PANE_MIN = 280;
+export const CHAT_PANE_MIN = 400;
 export const CHAT_PANE_MAX = 640;
 export const SIDEBAR_MIN = 64;
 export const SIDEBAR_MAX = 200;
@@ -43,7 +43,7 @@ const FACTORY_DEFAULTS: PersistedPreferences = {
   language: 'en',
   chatModel: 'qwen2.5-coder:1.5b',
   completionModel: 'qwen2.5-coder:1.5b',
-  inlineCompletionsEnabled: true,
+  inlineCompletionsEnabled: false,
   treePaneWidth: 240,
   chatPaneWidth: 360,
   sidebarWidth: 200,

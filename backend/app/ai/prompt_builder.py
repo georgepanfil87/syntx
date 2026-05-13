@@ -10,14 +10,6 @@ from app.schemas.ai import ChatMessage
 
 ModelFamily = Literal["qwen-coder", "generic"]
 
-
-# Coding-assistant preamble. Kept short on purpose: every system token
-# costs context window. The instructions cover the failure modes we
-# observed while testing locally:
-#   * models loved to wrap whole responses in prose — we tell them to
-#     keep prose tight and put the deliverable in fenced code blocks
-#   * they sometimes invented file paths — we tell them to mirror the
-#     paths shown in the workspace context
 _QWEN_CODER_PREAMBLE = (
     "You are Syntx, an AI coding assistant embedded in a code editor.\n"
     "- Reply with concise, working code. Prose is for short context only.\n"
@@ -38,10 +30,6 @@ _GENERIC_PREAMBLE = (
 
 def detect_family(model: str) -> ModelFamily:
     """Map a model tag to a coarse family.
-
-    Exposed (rather than `_detect_family`) so tests and the eventual
-    `/ai/models` endpoint can show the family next to the model name
-    without re-implementing the heuristic.
     """
     name = model.lower()
     if "coder" in name and ("qwen" in name or "deepseek" in name):
@@ -57,11 +45,6 @@ def _default_preamble(family: ModelFamily) -> str:
 
 def _render_snippets(snippets: tuple[FileSnippet, ...]) -> str:
     """Format attached files as a markdown block prefixing the user turn.
-
-    The header `### Workspace context` is a stable anchor. Inside, each
-    file is one section with the path as the heading and the body in a
-    fenced block. Models trained on GitHub markdown handle this layout
-    natively, so we do not need to invent a custom scheme.
     """
     parts: list[str] = ["### Workspace context"]
     for snippet in snippets:
