@@ -1,0 +1,38 @@
+<div class="max-w-6xl mx-auto p-6 space-y-6 animate-fade-up">
+  <header class="flex items-end justify-between gap-3">
+    <div>
+      <p class="text-xs uppercase tracking-[0.3em] text-primary">Admin / Metrics</p>
+      <h1 class="text-3xl font-semibold mt-1">
+        <span class="gradient-text">Telemetry</span>
+      </h1>
+      <p class="text-sm text-muted-foreground mt-1">
+        Live snapshot of the AI metrics ring buffer.
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <label class="flex items-center gap-2 text-xs text-muted-foreground">
+        <input type="checkbox" [checked]="autoRefresh()" (change)="autoRefresh.set($any($event.target).checked)"
+          class="h-3.5 w-3.5 accent-primary" />
+        <span>Auto-refresh (5s)</span>
+      </label>
+      <sx-button variant="ghost" size="sm" (click)="reload()">Refresh</sx-button>
+    </div>
+  </header>
+
+  @if (loading() && !data()) {
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    @for (i of [1, 2, 3, 4]; track i) {
+    <div class="h-24 rounded-xl border border-border animate-shimmer"></div>
+    }
+  </div>
+  } @else if (!data()) {
+  <p class="text-sm text-muted-foreground">No metrics available.</p>
+  } @else {
+  <div class="space-y-6 flex flex-col">
+    <headline-tiles [overall]="data()!.overall" [capacity]="data()!.capacity" />
+    <endpoint-table [rows]="endpointRows()" />
+    <recent-samples [samples]="recentSamples()" />
+  </div>
+
+  }
+</div>
