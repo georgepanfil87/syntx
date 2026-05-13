@@ -91,7 +91,7 @@ export class ChatThread implements AfterViewChecked {
   }
 
   protected bubbleClass(m: UiChatMessage): string {
-    const base = 'rounded-xl px-3 py-2 border text-sm leading-relaxed';
+    const base = 'rounded-xl px-3 py-2 border text-sm leading-relaxed min-w-0 overflow-hidden';
     if (m.role === 'user') {
       return `${base} bg-primary/15 border-primary/30 text-foreground self-end`;
     }

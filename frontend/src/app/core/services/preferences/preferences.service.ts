@@ -26,7 +26,7 @@ export interface PersistedPreferences {
 
 export const TREE_PANE_MIN = 180;
 export const TREE_PANE_MAX = 520;
-export const CHAT_PANE_MIN = 280;
+export const CHAT_PANE_MIN = 400;
 export const CHAT_PANE_MAX = 640;
 export const SIDEBAR_MIN = 64;
 export const SIDEBAR_MAX = 200;

@@ -182,7 +182,7 @@
           <sx-resizer (start)="onChatResizeStart()" (delta)="onChatResize($event)" (commit)="onChatResizeCommit()"
             (nudge)="onChatResizeNudge($event)" aria-label="Resize chat pane" />
 
-          <div class="shrink-0 border-l border-border flex flex-col min-h-0" [style.width.px]="chatWidth()">
+          <div class="shrink-0 border-l border-border flex flex-col min-h-0 overflow-hidden" [style.width.px]="chatWidth()">
             <chat-pane [sessions]="sessions()" [activeSession]="activeSession()" [activeSessionId]="activeSessionId()"
               [sessionPendingIds]="sessionPendingIds()" [loadingSessions]="sessionsLoading()" [messages]="messages()"
               [loadingMessages]="loadingMessages()" [streaming]="streaming()" [disabled]="!project()"
@@ -196,7 +196,7 @@
           </div>
           } @else {
           <!-- No file open: chat fills the full 80% width -->
-          <chat-pane class="flex-1 min-w-0" [sessions]="sessions()" [activeSession]="activeSession()"
+          <chat-pane class="flex-1 min-w-0 min-h-0" [sessions]="sessions()" [activeSession]="activeSession()"
             [activeSessionId]="activeSessionId()" [sessionPendingIds]="sessionPendingIds()"
             [loadingSessions]="sessionsLoading()" [messages]="messages()" [loadingMessages]="loadingMessages()"
             [streaming]="streaming()" [disabled]="!project()" [availableFiles]="filePaths()"
