@@ -9,3 +9,5 @@ export { Resizer } from './resizer/resizer';
 export { Skeleton } from './skeleton/skeleton';
 export { Textarea } from './textarea/textarea';
 export { Badge, type BadgeSize, type BadgeVariant } from './badge/badge';
+export { Select } from './select/select';
+export type { SelectOption } from './select/select';

@@ -42,6 +42,13 @@ export const routes: Routes = [
             (m) => m.ProjectsList,
           ),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/pages/settings-page/settings-page').then(
+            (m) => m.SettingsPage,
+          ),
+      },
     ],
   },
    {
