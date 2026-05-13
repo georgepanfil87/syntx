@@ -30,23 +30,6 @@ class WebSearchResult:
     snippet: str
 
 
-# DDG lite places each organic hit as two adjacent <td> blocks:
-#   <a href="URL" class='result-link'>TITLE</a>
-#   ... (whitespace) ...
-#   <td class='result-snippet'>SNIPPET</td>
-#
-# Notes on what the regex must tolerate:
-#   * DDG uses **single quotes** for `class=`, double for `href=`.
-#     Both attribute orders (href-first vs class-first) appear in
-#     the wild, so we don't pin the order.
-#   * Whitespace / other tags can appear between the link <td> and
-#     the snippet <td>; `.*?` plus DOTALL handles it.
-#   * URLs are usually direct, but DDG may wrap with `/l/?uddg=...`;
-#     `_unwrap_ddg_url` handles both shapes after extraction.
-#
-# This is the **single brittle point** of this module. When DDG
-# rebrands its CSS classes, fix it here. Failure mode is fail-closed
-# (zero matches → empty list → silent RAG skip).
 _RESULT_PATTERN = re.compile(
     r"""<a\s+[^>]*?href=["']([^"']+)["'][^>]*?class=['"]result-link['"][^>]*>"""
     r"""(.*?)</a>.*?class=['"]result-snippet['"][^>]*>(.*?)</td>""",
@@ -62,11 +45,6 @@ def _strip_tags(s: str) -> str:
 
 def _unwrap_ddg_url(href: str) -> str:
     """Pull the real destination out of DDG's `/l/?uddg=ENCODED` wrapper.
-
-    Returns the input unchanged when it already looks like a direct
-    URL — handles the case where DDG occasionally serves the raw
-    target without wrapping (and any future backend that doesn't
-    wrap at all).
     """
     if href.startswith("//"):
         href = f"https:{href}"
@@ -94,11 +72,6 @@ class RagRetriever:
 
     async def search(self, query: str) -> list[WebSearchResult]:
         """Run a query, return up to `max_results` parsed hits.
-
-        Always returns a list. Network failures, HTTP errors, and
-        layout changes all collapse to `[]` with an INFO log. Callers
-        should treat an empty list as "no RAG context this turn" —
-        not as a search failure.
         """
         try:
             async with httpx.AsyncClient(
@@ -150,12 +123,6 @@ class RagRetriever:
     async def search_as_snippets(self, query: str) -> list[FileSnippet]:
         """Search and convert hits into the `FileSnippet` shape that
         `ContextEngine` and `prompt_builder` already consume.
-
-        We pack the title and snippet together as the snippet body and
-        use the URL as `path` — the markdown fence header in the final
-        prompt becomes a citation the model is expected to surface.
-        `language=None` so the prompt builder leaves the fence
-        untagged (web text isn't code).
         """
         results = await self.search(query)
         return [

@@ -41,7 +41,7 @@ export class MonacoEditor implements AfterViewInit, OnDestroy {
   readonly language = input<string>('plaintext');
   readonly theme = input<'vs-dark' | 'vs'>('vs-dark');
   readonly readOnly = input<boolean>(false);
-  readonly enableInlineCompletions = input<boolean>(true);
+  readonly enableInlineCompletions = input<boolean>(false);
   readonly completionModel = input<string>('qwen2.5-coder:1.5b');
 
   readonly valueChange = output<string>();

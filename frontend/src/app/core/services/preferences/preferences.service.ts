@@ -43,7 +43,7 @@ const FACTORY_DEFAULTS: PersistedPreferences = {
   language: 'en',
   chatModel: 'qwen2.5-coder:1.5b',
   completionModel: 'qwen2.5-coder:1.5b',
-  inlineCompletionsEnabled: true,
+  inlineCompletionsEnabled: false,
   treePaneWidth: 240,
   chatPaneWidth: 360,
   sidebarWidth: 200,
