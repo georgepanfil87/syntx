@@ -1,0 +1,73 @@
+<sx-modal [open]="open()" [title]="title()" size="xl" (close)="cancel()">
+  @if (proposal(); as p) {
+  <!-- ── Path + legend ── -->
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <p class="text-xs text-muted-foreground font-mono break-all flex-1">
+      {{ p.path }}
+    </p>
+    <div class="flex items-center gap-3 text-[10px] text-muted-foreground shrink-0">
+      <span class="inline-flex items-center gap-1">
+        <span class="w-2 h-2 rounded-sm bg-muted-foreground/70"></span>
+        {{ i18n.t('applyDiff.current') }}
+      </span>
+      <span class="inline-flex items-center gap-1">
+        <span class="w-2 h-2 rounded-sm bg-primary"></span>
+        {{ i18n.t('applyDiff.result') }}
+      </span>
+    </div>
+  </div>
+
+  @if (exists()) {
+  <div class="flex items-center gap-1 mb-3 flex-wrap">
+    @for (m of modes; track m.value) {
+    <button type="button" class="px-2.5 py-1 rounded text-xs font-medium transition border"
+      [class.bg-primary]="mode() === m.value" [class.text-primary-foreground]="mode() === m.value"
+      [class.border-primary]="mode() === m.value" [class.border-border]="mode() !== m.value"
+      [class.text-muted-foreground]="mode() !== m.value" [class.hover:text-foreground]="mode() !== m.value"
+      [class.hover:border-foreground]="mode() !== m.value" (click)="mode.set(m.value)"
+      [title]="i18n.t(m.descriptionKey)">
+      {{ i18n.t(m.labelKey) }}
+    </button>
+    }
+
+    @if (mode() === 'insert') {
+    <div class="flex items-center gap-1.5 ml-2">
+      <label class="text-[11px] text-muted-foreground" for="insert-line">
+        {{ i18n.t('applyDiff.afterLine') }}
+      </label>
+      <input id="insert-line" type="number" min="0" [max]="lineCount()"
+        class="w-16 text-xs font-mono bg-background border border-border rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-ring"
+        [ngModel]="insertLine()" (ngModelChange)="setInsertLine($event)" />
+      <span class="text-[11px] text-muted-foreground">
+        / {{ lineCount() }}
+      </span>
+    </div>
+    }
+  </div>
+  }
+
+  <!--  Diff editor  -->
+  <div class="rounded-md border border-border overflow-hidden h-[60vh] min-h-[18rem]">
+    @if (loadingCurrent()) {
+    <div class="h-full p-3">
+      <sx-skeleton [lines]="16" height="0.5rem"
+        [widths]="['68%','82%','45%','55%','78%','35%','62%','72%','40%','58%','85%','48%','66%','75%','38%','60%']" />
+    </div>
+    } @else {
+    <monaco-diff [original]="current()" [modified]="finalContent()" [language]="p.language || 'plaintext'"
+      [theme]="themeSvc.monacoTheme()" />
+    }
+  </div>
+
+  @if (loadError()) {
+  <p class="text-xs text-destructive mt-3">{{ loadError() }}</p>
+  }
+  }
+
+  <div slot="footer">
+    <sx-button variant="ghost" (click)="cancel()">{{ i18n.t('common.cancel') }}</sx-button>
+    <sx-button (click)="apply()" [disabled]="!proposal() || loadingCurrent()">
+      {{ applyLabel() }}
+    </sx-button>
+  </div>
+</sx-modal>

@@ -1,0 +1,59 @@
+<div class="max-w-6xl mx-auto p-6 space-y-6 animate-fade-up">
+  <header class="flex items-end justify-between gap-3">
+    <div>
+      <p class="text-xs uppercase tracking-[0.3em] text-primary">{{ i18n.t('projects.tagline') }}</p>
+      <h1 class="text-3xl font-semibold mt-1">
+        <span class="gradient-text">{{ i18n.t('projects.heading') }}</span>
+      </h1>
+      <p class="text-sm text-muted-foreground mt-1">
+        {{ i18n.t('projects.subheading') }}
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <!--
+            Hidden file input drives the Import flow. Clicking the
+            visible "Import" button forwards a click to this input;
+            the OS picker opens and the chosen file is processed by
+            the onImportPicked handler below.
+          -->
+      <input #importFile type="file" accept=".zip,application/zip" class="hidden" (change)="onImportPicked($event)" />
+      <sx-button variant="ghost" (click)="importFile.click()" [disabled]="importing()">
+        <sx-icon slot="leading" name="download" class="rotate-180" />
+        @if (importing()) {
+        {{ i18n.t('projects.importing') }}
+        } @else {
+        {{ i18n.t('projects.import') }}
+        }
+      </sx-button>
+      <sx-button (click)="openCreate()">
+        <sx-icon slot="leading" name="plus" />
+        {{ i18n.t('projects.new') }}
+      </sx-button>
+    </div>
+  </header>
+
+  <!-- Body -->
+  @if (loading() && projects().length === 0) {
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (i of [1, 2, 3]; track i) {
+    <div class="rounded-xl border border-border h-36 animate-shimmer"></div>
+    }
+  </div>
+  } @else if (isEmpty()) {
+  <empty-state [title]="i18n.t('projects.emptyTitle')" [body]="i18n.t('projects.emptyBody')" iconName="folder">
+    <span slot="action">
+      <sx-button (click)="openCreate()">{{ i18n.t('projects.emptyAction') }}</sx-button>
+    </span>
+  </empty-state>
+  } @else {
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (p of projects(); track p.id) {
+    <sx-project-card [project]="p" [pending]="isPending(p.id)" (rename)="openRename($event)"
+      (delete)="confirmDelete($event)" />
+    }
+  </div>
+  }
+</div>
+
+<sx-project-create-modal [open]="createOpen()" (close)="createOpen.set(false)" />
+<sx-project-rename-modal [open]="renameOpen()" [project]="renameTarget()" (close)="renameOpen.set(false)" />

@@ -1,0 +1,97 @@
+/*
+ * Midnight — Syntx's signature palette. Cyan + violet gradient
+ * accents. Available in dark (deep navy) and light (cool white).
+ *
+ * Activated when <html> carries `.theme-midnight` together with
+ * either `.dark` or `.light`. Also serves as the implicit default
+ * via the bare `:root` block below, so the app still renders
+ * before ThemeService has applied its classes (e.g. SSR, FOUC).
+ */
+:root,
+.theme-midnight.dark {
+  --background: 230 25% 5%;
+  --foreground: 210 40% 98%;
+
+  --card: 230 25% 8%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 230 25% 8%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 190 95% 50%;
+  --primary-foreground: 230 25% 5%;
+
+  --secondary: 230 25% 12%;
+  --secondary-foreground: 210 40% 90%;
+
+  --muted: 230 20% 15%;
+  --muted-foreground: 220 15% 55%;
+
+  --accent: 280 80% 60%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 230 20% 15%;
+  --input: 230 20% 15%;
+  --ring: 190 95% 50%;
+
+  --radius: 0.75rem;
+
+  --gradient-primary: linear-gradient(135deg, hsl(190 95% 50%) 0%, hsl(280 80% 60%) 100%);
+  --gradient-hero: radial-gradient(ellipse at top, hsl(190 95% 50% / 0.10) 0%, transparent 50%);
+  --gradient-card: linear-gradient(145deg, hsl(230 25% 10%) 0%, hsl(230 25% 6%) 100%);
+  --gradient-text: linear-gradient(135deg, hsl(190 95% 60%) 0%, hsl(280 80% 70%) 100%);
+  --gradient-code: linear-gradient(135deg, hsl(190 95% 50% / 0.10) 0%, hsl(280 80% 60% / 0.10) 100%);
+
+  --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.40);
+  --shadow-elevated: 0 8px 40px hsl(0 0% 0% / 0.50);
+  --shadow-glow: 0 0 60px hsl(190 95% 50% / 0.20);
+  --shadow-glow-accent: 0 0 40px hsl(280 80% 60% / 0.20);
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.theme-midnight.light {
+  --background: 220 20% 97%;
+  --foreground: 230 25% 10%;
+
+  --card: 220 25% 100%;
+  --card-foreground: 230 25% 10%;
+
+  --popover: 220 25% 100%;
+  --popover-foreground: 230 25% 10%;
+
+  --primary: 190 95% 40%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 220 20% 92%;
+  --secondary-foreground: 230 25% 15%;
+
+  --muted: 220 18% 90%;
+  --muted-foreground: 230 12% 42%;
+
+  --accent: 280 70% 50%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 75% 50%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 220 18% 86%;
+  --input: 220 18% 86%;
+  --ring: 190 95% 40%;
+
+  --gradient-primary: linear-gradient(135deg, hsl(190 95% 40%) 0%, hsl(280 70% 50%) 100%);
+  --gradient-hero: radial-gradient(ellipse at top, hsl(190 95% 40% / 0.10) 0%, transparent 50%);
+  --gradient-card: linear-gradient(145deg, hsl(220 25% 100%) 0%, hsl(220 20% 96%) 100%);
+  --gradient-text: linear-gradient(135deg, hsl(190 95% 38%) 0%, hsl(280 70% 48%) 100%);
+  --gradient-code: linear-gradient(135deg, hsl(190 95% 40% / 0.08) 0%, hsl(280 70% 50% / 0.08) 100%);
+
+  --shadow-card: 0 4px 24px hsl(230 25% 30% / 0.10);
+  --shadow-elevated: 0 8px 40px hsl(230 25% 30% / 0.14);
+  --shadow-glow: 0 0 60px hsl(190 95% 40% / 0.18);
+  --shadow-glow-accent: 0 0 40px hsl(280 70% 50% / 0.18);
+}

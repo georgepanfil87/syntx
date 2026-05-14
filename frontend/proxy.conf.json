@@ -1,0 +1,19 @@
+{
+  "/api": {
+    "target": "http://backend:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true,
+    "logLevel": "debug"
+  },
+  "/health": {
+    "target": "http://backend:8000",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/ready": {
+    "target": "http://backend:8000",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

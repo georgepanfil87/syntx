@@ -1,0 +1,93 @@
+  <div
+      #scroller
+      class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-3"
+      (scroll)="onScroll($event)"
+    >
+      @if (messages().length === 0 && !loading()) {
+        <p class="text-xs text-muted-foreground italic px-1 py-3">
+          {{ i18n.t('chat.threadEmpty') }}
+        </p>
+      } @else {
+        @for (m of messages(); track m.id) {
+          <div [class]="rowClass(m)">
+            <div class="flex flex-col items-stretch max-w-[88%] min-w-0 gap-1">
+              <div [class]="bubbleClass(m)+ ' min-w-0 overflow-hidden'">
+                @if (m.role === 'assistant') {
+                  <message-content
+                    [content]="m.content"
+                    [openFilePath]="openFilePath()"
+                    (applyCodeBlock)="onApply($event)"
+                  />
+                  @if (m.streaming) {
+                    <span class="inline-block w-1.5 h-3.5 bg-current align-middle ml-0.5 animate-caret"></span>
+                  }
+                } @else {
+                  <pre class="whitespace-pre-wrap font-sans text-sm m-0 break-words min-w-0 overflow-hidden">{{ m.content }}</pre>
+                }
+                @if (m.role === 'assistant' && m.model && !m.streaming) {
+                  <p class="text-[10px] text-muted-foreground mt-1 font-mono">
+                    {{ m.model }}@if (m.token_count) { · {{ i18n.t('chat.tokens', { count: m.token_count }) }} }
+                  </p>
+                }
+              </div>
+
+              <button
+                type="button"
+                class="self-start inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition px-1"
+                (click)="toggleDetails(m.id)"
+                [attr.aria-expanded]="isOpen(m.id)"
+              >
+                <sx-icon
+                  name="chevron-right"
+                  [size]="10"
+                  [class.rotate-90]="isOpen(m.id)"
+                />
+                <span>{{ isOpen(m.id) ? i18n.t('chat.detailsHide') : i18n.t('chat.detailsShow') }}</span>
+              </button>
+
+              @if (isOpen(m.id)) {
+                <dl
+                  class="rounded-md border border-border bg-background/60 text-[11px] grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 px-3 py-2 font-mono"
+                >
+                  <dt class="text-muted-foreground">{{ i18n.t('chat.detailsId') }}</dt>
+                  <dd class="truncate" [title]="m.id">{{ shortId(m.id) }}</dd>
+
+                  <dt class="text-muted-foreground">{{ i18n.t('chat.detailsCreated') }}</dt>
+                  <dd>{{ formatAbsTime(m.created_at) }}</dd>
+
+                  <dt class="text-muted-foreground">{{ i18n.t('chat.detailsRole') }}</dt>
+                  <dd>{{ m.role }}</dd>
+
+                  @if (m.model) {
+                    <dt class="text-muted-foreground">{{ i18n.t('chat.detailsModel') }}</dt>
+                    <dd>{{ m.model }}</dd>
+                  }
+
+                  @if (m.token_count) {
+                    <dt class="text-muted-foreground">{{ i18n.t('chat.detailsTokens') }}</dt>
+                    <dd>{{ m.token_count }}</dd>
+                  }
+
+                  @if (latency(m); as ms) {
+                    <dt class="text-muted-foreground">{{ i18n.t('chat.detailsLatency') }}</dt>
+                    <dd>{{ ms }}</dd>
+                  }
+
+                  <dt class="text-muted-foreground">{{ i18n.t('chat.detailsSize') }}</dt>
+                  <dd>{{ i18n.t('chat.detailsSizeStat', { chars: m.content.length, lines: lineCount(m.content) }) }}</dd>
+
+                  @if (m.filePaths && m.filePaths.length > 0) {
+                    <dt class="text-muted-foreground self-start">{{ i18n.t('chat.detailsFiles') }}</dt>
+                    <dd class="space-y-0.5">
+                      @for (p of m.filePaths; track p) {
+                        <div class="text-primary truncate" [title]="p">{{ p }}</div>
+                      }
+                    </dd>
+                  }
+                </dl>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>

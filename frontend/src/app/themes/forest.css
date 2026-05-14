@@ -1,0 +1,86 @@
+/*
+ * Forest — evergreen + amber. Calmer than Midnight for long coding
+ * sessions; the green/amber pair is borrowed from terminal palettes
+ * (Solarized, Gruvbox) where eye-fatigue has been studied.
+ */
+.theme-forest.dark {
+  --background: 150 25% 6%;
+  --foreground: 60 15% 95%;
+
+  --card: 150 22% 9%;
+  --card-foreground: 60 15% 95%;
+
+  --popover: 150 22% 9%;
+  --popover-foreground: 60 15% 95%;
+
+  --primary: 145 65% 50%;
+  --primary-foreground: 150 25% 6%;
+
+  --secondary: 150 18% 13%;
+  --secondary-foreground: 60 15% 92%;
+
+  --muted: 150 15% 16%;
+  --muted-foreground: 130 10% 58%;
+
+  --accent: 35 90% 58%;
+  --accent-foreground: 150 25% 6%;
+
+  --destructive: 0 75% 58%;
+  --destructive-foreground: 60 15% 95%;
+
+  --border: 150 15% 17%;
+  --input: 150 15% 17%;
+  --ring: 145 65% 50%;
+
+  --gradient-primary: linear-gradient(135deg, hsl(145 65% 50%) 0%, hsl(35 90% 58%) 100%);
+  --gradient-hero: radial-gradient(ellipse at top, hsl(145 65% 50% / 0.10) 0%, transparent 50%);
+  --gradient-card: linear-gradient(145deg, hsl(150 22% 11%) 0%, hsl(150 25% 7%) 100%);
+  --gradient-text: linear-gradient(135deg, hsl(145 65% 60%) 0%, hsl(35 90% 65%) 100%);
+  --gradient-code: linear-gradient(135deg, hsl(145 65% 50% / 0.10) 0%, hsl(35 90% 58% / 0.10) 100%);
+
+  --shadow-card: 0 4px 24px hsl(150 30% 2% / 0.45);
+  --shadow-elevated: 0 8px 40px hsl(150 30% 2% / 0.55);
+  --shadow-glow: 0 0 60px hsl(145 65% 50% / 0.18);
+  --shadow-glow-accent: 0 0 40px hsl(35 90% 58% / 0.18);
+}
+
+.theme-forest.light {
+  --background: 90 25% 96%;
+  --foreground: 150 25% 12%;
+
+  --card: 90 30% 100%;
+  --card-foreground: 150 25% 12%;
+
+  --popover: 90 30% 100%;
+  --popover-foreground: 150 25% 12%;
+
+  --primary: 145 70% 32%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 90 22% 90%;
+  --secondary-foreground: 150 25% 18%;
+
+  --muted: 90 20% 88%;
+  --muted-foreground: 150 12% 42%;
+
+  --accent: 35 85% 45%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 75% 48%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 90 18% 82%;
+  --input: 90 18% 82%;
+  --ring: 145 70% 32%;
+
+  --gradient-primary: linear-gradient(135deg, hsl(145 70% 32%) 0%, hsl(35 85% 45%) 100%);
+  --gradient-hero: radial-gradient(ellipse at top, hsl(145 70% 32% / 0.10) 0%, transparent 50%);
+  --gradient-card: linear-gradient(145deg, hsl(90 30% 100%) 0%, hsl(90 25% 95%) 100%);
+  --gradient-text: linear-gradient(135deg, hsl(145 70% 30%) 0%, hsl(35 85% 42%) 100%);
+  --gradient-code: linear-gradient(135deg, hsl(145 70% 32% / 0.08) 0%, hsl(35 85% 45% / 0.08) 100%);
+
+  --shadow-card: 0 4px 24px hsl(150 30% 20% / 0.10);
+  --shadow-elevated: 0 8px 40px hsl(150 30% 20% / 0.14);
+  --shadow-glow: 0 0 60px hsl(145 70% 32% / 0.16);
+  --shadow-glow-accent: 0 0 40px hsl(35 85% 45% / 0.16);
+}

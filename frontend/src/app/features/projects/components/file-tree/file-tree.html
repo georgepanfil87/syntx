@@ -1,0 +1,305 @@
+ <!--  Root toolbar  -->
+    <div class="flex items-center justify-between px-2 py-1 border-b border-border/40 shrink-0 gap-2">
+      <span class="text-[10px] text-muted-foreground uppercase tracking-widest font-medium shrink-0">
+        {{ i18n.t('tree.files') }}
+      </span>
+      <div class="flex gap-0.5 items-center">
+        @if (contextPaths().length > 0) {
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-primary bg-primary/10 hover:bg-primary/20 transition"
+            [title]="'Clear ' + contextPaths().length + ' file(s) from chat context'"
+            (click)="clearContext.emit()"
+          >
+            <sx-icon name="check" [size]="9" />
+            <span>{{ contextPaths().length }}</span>
+            <sx-icon name="x" [size]="9" />
+          </button>
+        }
+        <button
+          type="button"
+          class="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+          [title]="i18n.t('tree.addAllToContext')"
+          (click)="selectAllContext.emit()"
+        >
+          <sx-icon name="inbox" [size]="11" />
+        </button>
+        <span class="w-px h-3.5 bg-border/60 mx-0.5" aria-hidden="true"></span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+          [title]="i18n.t('tree.newFile')"
+          (click)="startCreate('', 'file')"
+        >
+          <sx-icon name="file" [size]="10" />
+          <sx-icon name="plus" [size]="8" />
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+          [title]="i18n.t('tree.newFolder')"
+          (click)="startCreate('', 'folder')"
+        >
+          <sx-icon name="folder" [size]="10" />
+          <sx-icon name="plus" [size]="8" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Root-level inline creation -->
+    @if (creatingIn() === '') {
+      <div class="px-2 pt-1.5 shrink-0">
+        <ng-container *ngTemplateOutlet="createInput; context: { indent: false }" />
+      </div>
+    }
+
+    <!-- Tree -->
+    <div class="flex-1 overflow-auto py-1">
+      @if (tree().length === 0 && creatingIn() === null) {
+        <p class="text-xs text-muted-foreground italic px-3 py-2">
+          {{ i18n.t('tree.empty') }}
+        </p>
+      } @else {
+        <ul class="text-sm">
+          <ng-container *ngTemplateOutlet="nodeList; context: { $implicit: tree() }" />
+        </ul>
+      }
+    </div>
+
+    <!--  Templates -->
+    <ng-template #createInput let-indent="indent">
+      <div [class.pl-5]="indent" class="pb-1">
+        <div
+          class="flex items-center gap-1.5 px-2 py-0.5 bg-background border border-border rounded-md"
+        >
+          <sx-icon
+            [name]="creatingType() === 'folder' ? 'folder' : 'file'"
+            [size]="12"
+            class="text-muted-foreground shrink-0"
+          />
+          <input
+            autofocus
+            type="text"
+            class="flex-1 min-w-0 text-xs font-mono bg-transparent outline-none placeholder:text-muted-foreground/50"
+            [placeholder]="creatingType() === 'folder' ? 'folder-name' : 'filename.ts'"
+            [ngModel]="newItemName()"
+            (ngModelChange)="newItemName.set($event)"
+            (keydown.enter)="confirmCreate()"
+            (keydown.escape)="cancelCreate()"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        @if (newItemError()) {
+          <p class="text-[10px] text-destructive px-1 mt-0.5">{{ newItemError() }}</p>
+        }
+        <p class="text-[10px] text-muted-foreground px-1 mt-0.5">
+          Enter to confirm · Esc to cancel
+        </p>
+      </div>
+    </ng-template>
+
+    <ng-template #nodeList let-nodes>
+      @for (node of nodes; track node.path) {
+        @if (!(node.name === '.gitkeep' && !node.isDir)) {
+          <li>
+            @if (node.isDir) {
+              <!-- Folder node -->
+              @if (renamingPath() === node.path) {
+                <!-- Rename mode -->
+                <div class="flex items-center gap-1.5 px-2 py-0.5">
+                  <span class="w-3 shrink-0"></span>
+                  <sx-icon name="folder" [size]="14" class="text-primary/80 shrink-0" />
+                  <input
+                    autofocus
+                    type="text"
+                    class="flex-1 min-w-0 text-xs font-mono bg-background border border-border rounded px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-ring"
+                    [ngModel]="renameValue()"
+                    (ngModelChange)="renameValue.set($event)"
+                    (keydown.enter)="confirmRenameFolder(node)"
+                    (keydown.escape)="cancelRename()"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+              } @else {
+                <!-- Normal mode -->
+                <div class="group flex items-center rounded hover:bg-secondary transition">
+                  <button
+                    type="button"
+                    class="flex-1 min-w-0 flex items-center gap-1.5 px-2 py-1 text-left"
+                    (click)="toggleDir(node.path)"
+                  >
+                    <sx-icon
+                      name="chevron-right"
+                      [size]="12"
+                      class="shrink-0 transition-transform duration-150"
+                      [class.rotate-90]="isOpen(node.path)"
+                    />
+                    <sx-icon
+                      name="folder"
+                      [size]="14"
+                      class="text-primary/80 shrink-0"
+                    />
+                    <span class="truncate text-xs">{{ node.name }}</span>
+                  </button>
+                  <!-- Folder action buttons (visible on hover) -->
+                  <div
+                    class="opacity-0 group-hover:opacity-100 flex gap-0.5 pr-1 shrink-0 transition-opacity"
+                  >
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition"
+                      [title]="'New file in ' + node.name"
+                      (click)="startCreate(node.path, 'file')"
+                    >
+                      <sx-icon name="file" [size]="11" />
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition"
+                      [title]="'New subfolder in ' + node.name"
+                      (click)="startCreate(node.path, 'folder')"
+                    >
+                      <sx-icon name="folder" [size]="11" />
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition"
+                      [title]="'Rename ' + node.name"
+                      (click)="startRename(node)"
+                    >
+                      <sx-icon name="pencil" [size]="11" />
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
+                      [title]="'Delete folder ' + node.name"
+                      (click)="onDeleteFolder(node.path, $event)"
+                    >
+                      <sx-icon name="trash" [size]="11" />
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Folder children (open) -->
+              @if (isOpen(node.path)) {
+                <ul class="border-l border-border ml-3.5 pl-2">
+                  @if (node.children?.length) {
+                    <ng-container
+                      *ngTemplateOutlet="nodeList; context: { $implicit: node.children }"
+                    />
+                  }
+                  <!-- Inline create input inside this folder -->
+                  @if (creatingIn() === node.path) {
+                    <li class="py-0.5">
+                      <ng-container
+                        *ngTemplateOutlet="createInput; context: { indent: false }"
+                      />
+                    </li>
+                  }
+                  <!-- Empty-folder hint -->
+                  @if (!node.children?.length && creatingIn() !== node.path) {
+                    <li
+                      class="text-[10px] text-muted-foreground italic px-3 py-1 select-none"
+                    >
+                      {{ i18n.t('tree.emptyFolder') }}
+                    </li>
+                  }
+                </ul>
+              }
+            } @else {
+              <!-- File node -->
+              @if (renamingPath() === node.path) {
+                <!-- Rename mode -->
+                <div class="flex items-center gap-1.5 px-2 py-0.5">
+                  <span class="w-3 shrink-0"></span>
+                  <sx-icon [name]="iconFor(node.path)" [size]="14" class="shrink-0" />
+                  <input
+                    autofocus
+                    type="text"
+                    class="flex-1 min-w-0 text-xs font-mono bg-background border border-border rounded px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-ring"
+                    [ngModel]="renameValue()"
+                    (ngModelChange)="renameValue.set($event)"
+                    (keydown.enter)="confirmRenameFile(node)"
+                    (keydown.escape)="cancelRename()"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+              } @else {
+
+                <div
+                  class="group flex items-center rounded transition"
+                  [class.bg-secondary]="activePath() === node.path"
+                  [class.text-primary]="activePath() === node.path"
+                  [class.hover:bg-secondary]="activePath() !== node.path"
+                >
+                  <!-- Context checkbox -->
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center w-5 h-5 ml-1 rounded transition shrink-0"
+                    [class.opacity-0]="!isInContext(node.path)"
+                    [class.group-hover:opacity-100]="!isInContext(node.path)"
+                    [class.opacity-100]="isInContext(node.path)"
+                    [attr.aria-pressed]="isInContext(node.path)"
+                    [attr.aria-label]="(isInContext(node.path) ? 'Remove from' : 'Add to') + ' chat context: ' + node.name"
+                    [title]="isInContext(node.path) ? 'In chat context — click to remove' : 'Add to chat context'"
+                    (click)="onContextToggle(node.path, $event)"
+                  >
+                    <span
+                      class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-sm border transition"
+                      [class.bg-primary]="isInContext(node.path)"
+                      [class.border-primary]="isInContext(node.path)"
+                      [class.border-border]="!isInContext(node.path)"
+                      [class.hover:border-primary]="!isInContext(node.path)"
+                    >
+                      @if (isInContext(node.path)) {
+                        <sx-icon name="check" [size]="9" class="text-primary-foreground" />
+                      }
+                    </span>
+                  </button>
+                  <!-- File label / select button -->
+                  <button
+                    type="button"
+                    draggable="true"
+                    [attr.data-path]="node.path"
+                    (dragstart)="onDragStart($event, node.path)"
+                    class="flex-1 min-w-0 flex items-center gap-1.5 px-1 py-1 text-left cursor-grab active:cursor-grabbing"
+                    [class.text-muted-foreground]="activePath() !== node.path"
+                    (click)="onSelect(node.path)"
+                  >
+                    <sx-icon [name]="iconFor(node.path)" [size]="14" class="shrink-0" />
+                    <span class="truncate text-xs">{{ node.name }}</span>
+                  </button>
+                  <!-- File action buttons (visible on hover) -->
+                  <div
+                    class="opacity-0 group-hover:opacity-100 flex gap-0.5 pr-1 shrink-0 transition-opacity"
+                  >
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition"
+                      [title]="'Rename ' + node.name"
+                      (click)="startRename(node)"
+                    >
+                      <sx-icon name="pencil" [size]="11" />
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
+                      [disabled]="isPending(node.path)"
+                      (click)="onDelete(node.path, $event)"
+                      [attr.aria-label]="'Delete ' + node.path"
+                      [title]="'Delete ' + node.name"
+                    >
+                      <sx-icon name="trash" [size]="11" />
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </li>
+        }
+      }
+    </ng-template>

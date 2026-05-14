@@ -1,0 +1,60 @@
+@if (file(); as f) {
+<div class="flex flex-col h-full min-h-0">
+  <header class="flex items-center justify-between gap-3 px-3 py-2 border-b border-border">
+    <div class="min-w-0 flex items-center gap-2">
+      <span class="inline-block w-2 h-2 rounded-full shrink-0 transition-colors" [class.bg-primary]="dirty()"
+        [class.bg-transparent]="!dirty()" [attr.aria-label]="dirty() ? 'Unsaved changes' : 'Saved'"
+        [title]="dirty() ? 'Unsaved · Cmd/Ctrl+S to save' : 'Saved'"></span>
+      <span class="font-mono text-xs truncate">{{ f.path }}</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      @if (saving()) {
+      <span class="text-[10px] text-muted-foreground font-mono">
+        {{ i18n.t('editor.saving') }}
+      </span>
+      }
+      <button type="button"
+        class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-primary border border-primary/30 hover:bg-primary/10 transition"
+        [title]="i18n.t('editor.editWithAi')" (click)="aiEdit.emit()">
+        <sx-icon name="check" [size]="10" />
+        <span>{{ i18n.t('editor.aiEdit') }}</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 min-h-0">
+    <monaco-editor [value]="buffer()" [language]="language()" [theme]="monacoTheme()"
+      [enableInlineCompletions]="enableInlineCompletions()" [completionModel]="completionModel()"
+      (valueChange)="onChange($event)" (save)="onSave()" />
+  </div>
+
+  <footer
+    class="flex items-center justify-between gap-3 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground font-mono">
+    <span class="inline-flex items-center gap-1.5">
+      <kbd class="inline-flex items-center px-1 py-px rounded border border-border bg-secondary/40 text-[9px]">
+        Alt+\\
+      </kbd>
+      <kbd class="inline-flex items-center px-1 py-px rounded border border-border bg-secondary/40 text-[9px]">
+        Cmd/Ctrl+J
+      </kbd>
+      <span class="text-muted-foreground/70">{{ i18n.t('editor.suggestHint') }}</span>
+    </span>
+    <span>{{ i18n.t('editor.stats', { chars: buffer().length, lines: lineCount() }) }}</span>
+  </footer>
+</div>
+} @else if (loading()) {
+<div class="h-full flex flex-col">
+  <header class="flex items-center justify-between gap-3 px-3 py-2 border-b border-border">
+    <sx-skeleton height="0.6rem" [widths]="['12rem']" />
+    <sx-skeleton height="0.6rem" [widths]="['4rem']" />
+  </header>
+  <div class="flex-1 min-h-0 p-3">
+    <sx-skeleton [lines]="14" height="0.55rem"
+      [widths]="['72%','55%','85%','40%','60%','78%','45%','68%','82%','30%','58%','75%','50%','65%']" />
+  </div>
+</div>
+} @else {
+<div class="h-full flex items-center justify-center text-sm text-muted-foreground italic">
+  {{ i18n.t('editor.emptyState') }}
+</div>
+}

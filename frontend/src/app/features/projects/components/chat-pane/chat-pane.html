@@ -1,0 +1,63 @@
+@if (mode() === 'list') {
+<!--  List mode: history + start affordance -->
+<header class="flex items-center justify-between gap-2 px-3 py-2 border-b border-border shrink-0">
+  <h2 class="text-xs uppercase tracking-wider text-primary">
+    {{ i18n.t('chat.title') }}
+  </h2>
+  <button type="button"
+    class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+    (click)="onNewChat()" [attr.aria-label]="i18n.t('chat.newChat')">
+    <sx-icon name="plus" [size]="10" />
+    <span>{{ i18n.t('chat.newChat') }}</span>
+  </button>
+</header>
+
+<div class="flex-1 overflow-auto p-2">
+  @if (loadingSessions() && sessions().length === 0) {
+  <div class="space-y-1.5">
+    @for (i of [1, 2, 3]; track i) {
+    <div class="h-12 rounded animate-shimmer"></div>
+    }
+  </div>
+  } @else {
+  <chat-sessions-list [sessions]="sessions()" [activeId]="activeSessionId()" [pendingIds]="sessionPendingIds()"
+    (select)="onSelectSession($event)" (rename)="rename.emit($event)" (export)="export.emit($event)"
+    (delete)="delete.emit($event)" />
+  }
+</div>
+} @else {
+<!-- Detail mode: single chat conversation  -->
+<header class="flex items-center gap-2 px-3 py-2 border-b border-border shrink-0">
+  <button type="button"
+    class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-secondary transition shrink-0"
+    (click)="goBack()" [attr.aria-label]="i18n.t('chat.backToList')">
+    <sx-icon name="chevron-left" [size]="11" />
+    <span>{{ i18n.t('chat.backToList') }}</span>
+  </button>
+
+  <h2 class="text-xs font-semibold truncate flex-1">
+    {{ activeSession()?.title || i18n.t('chat.newChatHeader') }}
+  </h2>
+</header>
+
+<!-- Thread (replay + streaming) -->
+@if (loadingMessages() && messages().length === 0) {
+<div class="flex-1 p-3 space-y-2">
+  @for (i of [1, 2]; track i) {
+  <div class="h-10 rounded animate-shimmer"></div>
+  }
+</div>
+} @else {
+<div class="flex-1 min-h-0 overflow-hidden">
+  <chat-thread class="h-full" [messages]="messages()" [loading]="loadingMessages()" [openFilePath]="openFilePath()"
+    (applyCodeBlock)="applyCodeBlock.emit($event)" />
+</div>
+}
+
+<!-- Composer -->
+<chat-composer [streaming]="streaming()" [disabled]="disabled()" [availableFiles]="availableFiles()"
+  [openFilePath]="openFilePath()" [webSearchAvailable]="webSearchAvailable()" [availableModels]="availableModels()"
+  [defaultModel]="defaultModel()" [modelsLoading]="modelsLoading()" [contextFiles]="contextFiles()"
+  [placeholder]="composerPlaceholder()" (send)="send.emit($event)" (abort)="abort.emit()"
+  (removeContextFile)="removeContextFile.emit($event)" (clearContextFiles)="clearContextFiles.emit()" />
+}

@@ -1,0 +1,43 @@
+    <!-- Header (status + close button) -->
+    <header
+      class="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-border shrink-0 text-xs"
+    >
+      <span class="inline-flex items-center gap-1.5 text-muted-foreground">
+        <span
+          class="inline-block w-2 h-2 rounded-full"
+          [class.bg-green-400]="status() === 'open'"
+          [class.bg-amber-400]="status() === 'connecting'"
+          [class.bg-destructive]="status() === 'closed' || status() === 'error'"
+          [title]="status()"
+        ></span>
+        <span class="font-mono">{{ statusLabel() }}</span>
+        <span class="opacity-60 hidden sm:inline">&middot; {{ i18n.t('terminal.subtitle') }}</span>
+      </span>
+      <div class="flex items-center gap-1">
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+          (click)="onClear()"
+          [title]="i18n.t('terminal.clear')"
+        >
+          <sx-icon name="x" [size]="10" />
+          <span>{{ i18n.t('terminal.clear') }}</span>
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+          (click)="close.emit()"
+          [title]="i18n.t('common.close')"
+          [attr.aria-label]="i18n.t('common.close')"
+        >
+          <sx-icon name="x" [size]="11" />
+        </button>
+      </div>
+    </header>
+
+    <!-- xterm host. flex-1 + min-h-0 lets the FitAddon measure the
+         actual rendered height after the panel resizes. -->
+    <div
+      #host
+      class="flex-1 min-h-0 bg-black overflow-hidden"
+    ></div>

@@ -1,0 +1,235 @@
+<div class="flex-1 min-h-0 flex flex-col animate-fade-up">
+  <!--  Top bar -->
+  <header class="flex items-center justify-between gap-4 px-4 py-3 border-b border-border bg-card/60 backdrop-blur-sm">
+    <!-- Left: brand + back + project name -->
+    <div class="flex items-center gap-3 min-w-0">
+      <a routerLink="/workspace/projects" class="flex items-center gap-2 shrink-0" aria-label="Back to projects">
+        <sx-logo [size]="28" ariaLabel="Syntx" />
+        <span
+          class="hidden sm:inline text-xs uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition">
+          syntx
+        </span>
+      </a>
+
+      <span class="text-muted-foreground/60">/</span>
+
+      <a routerLink="/workspace/projects"
+        class="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition shrink-0">
+        <sx-icon name="chevron-left" [size]="11" />
+        <span class="hidden md:inline">{{ i18n.t('topbar.allProjects') }}</span>
+      </a>
+
+      <span class="text-muted-foreground/60">/</span>
+
+      <div class="min-w-0">
+        @if (project(); as p) {
+        <p class="text-sm font-semibold truncate">{{ p.name }}</p>
+        <p class="text-[10px] text-muted-foreground font-mono truncate">{{ p.id }}</p>
+        } @else if (pending()) {
+        <div class="h-3 w-32 rounded animate-shimmer"></div>
+        <div class="h-2 w-48 rounded animate-shimmer mt-1"></div>
+        } @else {
+        <p class="text-sm font-semibold text-muted-foreground">{{ i18n.t('topbar.project') }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- Right: dashboard link + user popover -->
+    <div class="flex items-center gap-2 shrink-0 relative">
+      <a routerLink="/workspace" class="text-xs text-muted-foreground hover:text-foreground transition px-2 py-1"
+        [title]="i18n.t('topbar.dashboard')">{{ i18n.t('topbar.dashboard') }}</a>
+      @if (auth.currentUser(); as user) {
+      <button type="button"
+        class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold text-primary-foreground transition hover:ring-2 hover:ring-primary/40"
+        style="background: var(--gradient-primary)" (click)="toggleUserMenu($event)" [title]="user.email"
+        [attr.aria-expanded]="userMenuOpen()" aria-haspopup="dialog">{{ initials(user.email) }}</button>
+
+      @if (userMenuOpen()) {
+
+      <div
+        class="absolute right-0 top-full mt-2 rounded-md border border-border surface-elevated shadow-lg p-3 w-64 z-30 animate-fade-up"
+        role="dialog" aria-label="Signed-in user">
+        <div class="flex items-center gap-3 mb-3">
+          <span
+            class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-primary-foreground shrink-0"
+            style="background: var(--gradient-primary)">{{ initials(user.email) }}</span>
+          <div class="min-w-0 leading-tight">
+            <p class="text-sm font-semibold truncate">{{ displayName(user.email) }}</p>
+            <p class="text-[11px] text-muted-foreground truncate">{{ user.email }}</p>
+          </div>
+        </div>
+        <!-- Language switcher (Step 14: i18n) -->
+        <div class="flex items-center justify-between gap-2 mb-3 py-1.5 border-y border-border/60">
+          <span class="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+            {{ i18n.t('topbar.language') }}
+          </span>
+          <div class="inline-flex gap-1">
+            @for (l of languages; track l.code) {
+            <button type="button" class="px-2 py-0.5 rounded text-[11px] font-medium transition border"
+              [class.bg-primary]="prefs.language() === l.code"
+              [class.text-primary-foreground]="prefs.language() === l.code"
+              [class.border-primary]="prefs.language() === l.code" [class.border-border]="prefs.language() !== l.code"
+              [class.text-muted-foreground]="prefs.language() !== l.code"
+              [class.hover:text-foreground]="prefs.language() !== l.code" [title]="l.label"
+              (click)="setLanguage(l.code)">
+              {{ l.code.toUpperCase() }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <button type="button"
+          class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-muted-foreground border border-border hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition"
+          (click)="logout()">
+          <sx-icon name="log-out" [size]="12" />
+          <span>{{ i18n.t('auth.signOut') }}</span>
+        </button>
+      </div>
+      }
+      }
+    </div>
+  </header>
+
+  <!-- Body -->
+  @if (notFound()) {
+  <div class="flex-1 flex items-center justify-center">
+    <empty-state title="Project not found" body="It might have been deleted, or it isn't yours to view."
+      iconName="folder">
+      <span slot="action">
+        <sx-button routerLink="/workspace/projects">Back to projects</sx-button>
+      </span>
+    </empty-state>
+  </div>
+  } @else {
+
+  <div class="flex-1 min-h-0 flex">
+    <!-- Activity bar (far left, full-height) -->
+    <sx-activity-bar [selected]="activityView()" [terminalOpen]="terminalOpen()"
+      [exportDisabled]="exporting() || !project()" (select)="onActivitySelect($event)"
+      (toggleTerminal)="terminalOpen.update(v => !v)" (openSearch)="searchOpen.set(true)"
+      (exportProject)="onExportProject()" (openSettings)="onOpenSettings()" />
+
+    <!-- Content column: top row + optional terminal -->
+    <div class="flex-1 min-w-0 flex flex-col">
+      <!-- Top row: side panel + main area -->
+      <div class="flex-1 min-h-0 flex">
+        <!-- Side panel (Files or Git) -->
+        <div class="shrink-0 border-r border-border flex flex-col min-h-0" [style.width.px]="treeWidth()">
+          @switch (activityView()) {
+          @case ('files') {
+          @if (filesLoading() && files().length === 0) {
+          <div class="p-2 space-y-1.5">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+            <div class="h-6 rounded animate-shimmer"></div>
+            }
+          </div>
+          } @else {
+          <file-tree [entries]="files()" [activePath]="activeFilePath()" [pendingDeletes]="pendingDeletes()"
+            [contextPaths]="contextPaths()" (select)="onSelectFile($event)" (delete)="onDeleteFromTree($event)"
+            (deleteFolder)="onDeleteFolder($event)" (createFile)="onCreateFile($event)"
+            (createFolder)="onCreateFolder($event)" (rename)="onRename($event)"
+            (contextToggle)="onContextToggle($event)" (selectAllContext)="onContextSelectAll()"
+            (clearContext)="onContextClear()" />
+          }
+          }
+          @case ('git') {
+          <git-panel [projectId]="id()" />
+          }
+          }
+        </div>
+
+        <sx-resizer (start)="onTreeResizeStart()" (delta)="onTreeResize($event)" (commit)="onTreeResizeCommit()"
+          (nudge)="onTreeResizeNudge($event)" aria-label="Resize side pane" />
+
+        <!-- Main area: chat-only (no file open) OR editor+chat split -->
+        <div class="flex-1 min-w-0 flex">
+          @if (activeFile() || activeLoadingFile()) {
+          <!-- Editor takes the bulk; chat-pane sits on the right -->
+          <div class="flex-1 min-w-0 flex flex-col">
+            @if (tabs().length > 0) {
+            <div #tabStrip class="flex items-stretch border-b border-border overflow-x-auto" role="tablist"
+              aria-label="Open files">
+              @for (t of tabs(); track t.path) {
+              <div [attr.data-tab-path]="t.path"
+                class="group flex items-center gap-1 pl-2 pr-1 py-1 border-r border-border text-xs cursor-pointer transition shrink-0"
+                [class.bg-secondary]="t.path === activeTabPath()" [class.text-primary]="t.path === activeTabPath()"
+                [class.text-muted-foreground]="t.path !== activeTabPath()"
+                [attr.aria-selected]="t.path === activeTabPath()" role="tab"
+                [title]="t.path + (isTabDirty(t) ? ' &middot; unsaved' : '')" (click)="onActivateTab(t.path)">
+                @if (isTabDirty(t)) {
+                <span class="inline-block w-2 h-2 rounded-full bg-primary" aria-label="Unsaved"></span>
+                } @else {
+                <sx-icon [name]="iconForFile(t.path)" [size]="11" />
+                }
+                <span class="font-mono truncate max-w-[12rem]">{{ basename(t.path) }}</span>
+                <button type="button"
+                  class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded hover:bg-destructive/20 hover:text-destructive transition"
+                  (click)="onCloseTab(t.path, $event)" [attr.aria-label]="'Close ' + t.path">
+                  <sx-icon name="x" [size]="9" />
+                </button>
+              </div>
+              }
+            </div>
+            }
+
+            <file-editor [file]="activeFile()" [loading]="activeLoadingFile()" [saving]="saving()"
+              [initialBuffer]="activeBuffer()" [language]="editorLanguage()"
+              [enableInlineCompletions]="prefs.inlineCompletionsEnabled()" [completionModel]="prefs.completionModel()"
+              [monacoTheme]="themeSvc.monacoTheme()" (save)="onSaveFile($event)" (bufferChange)="onBufferChange($event)"
+              (aiEdit)="onAiEdit()" />
+          </div>
+
+          <sx-resizer (start)="onChatResizeStart()" (delta)="onChatResize($event)" (commit)="onChatResizeCommit()"
+            (nudge)="onChatResizeNudge($event)" aria-label="Resize chat pane" />
+
+          <div class="shrink-0 border-l border-border flex flex-col min-h-0 overflow-hidden" [style.width.px]="chatWidth()">
+            <chat-pane [sessions]="sessions()" [activeSession]="activeSession()" [activeSessionId]="activeSessionId()"
+              [sessionPendingIds]="sessionPendingIds()" [loadingSessions]="sessionsLoading()" [messages]="messages()"
+              [loadingMessages]="loadingMessages()" [streaming]="streaming()" [disabled]="!project()"
+              [availableFiles]="filePaths()" [openFilePath]="activeFilePath()"
+              [webSearchAvailable]="webSearchAvailable()" [availableModels]="availableModels()"
+              [defaultModel]="defaultChatModel()" [modelsLoading]="modelsLoading()" [contextFiles]="contextPaths()"
+              (selectSession)="onSelectSession($event)" (newChat)="onNewChat()" (rename)="onRenameSession($event)"
+              (export)="onExportSession($event)" (delete)="onDeleteSession($event)" (send)="onSendMessage($event)"
+              (abort)="onAbortStream()" (applyCodeBlock)="onApplyCodeBlock($event)"
+              (removeContextFile)="onContextToggle($event)" (clearContextFiles)="onContextClear()" />
+          </div>
+          } @else {
+          <!-- No file open: chat fills the full 80% width -->
+          <chat-pane class="flex-1 min-w-0 min-h-0" [sessions]="sessions()" [activeSession]="activeSession()"
+            [activeSessionId]="activeSessionId()" [sessionPendingIds]="sessionPendingIds()"
+            [loadingSessions]="sessionsLoading()" [messages]="messages()" [loadingMessages]="loadingMessages()"
+            [streaming]="streaming()" [disabled]="!project()" [availableFiles]="filePaths()"
+            [openFilePath]="activeFilePath()" [webSearchAvailable]="webSearchAvailable()"
+            [availableModels]="availableModels()" [defaultModel]="defaultChatModel()" [modelsLoading]="modelsLoading()"
+            [contextFiles]="contextPaths()" (selectSession)="onSelectSession($event)" (newChat)="onNewChat()"
+            (rename)="onRenameSession($event)" (export)="onExportSession($event)" (delete)="onDeleteSession($event)"
+            (send)="onSendMessage($event)" (abort)="onAbortStream()" (applyCodeBlock)="onApplyCodeBlock($event)"
+            (removeContextFile)="onContextToggle($event)" (clearContextFiles)="onContextClear()" />
+          }
+        </div>
+      </div>
+
+      <!-- Terminal panel — slides up from the bottom -->
+      @if (terminalOpen()) {
+      <div class="shrink-0 border-t border-border" style="height: 280px">
+        <terminal-modal [projectId]="id()" (close)="terminalOpen.set(false)"
+          (filesChanged)="onTerminalFilesChanged()" />
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>
+
+<chat-session-rename-modal [open]="renameSessionOpen()" [session]="renameSessionTarget()"
+  (close)="renameSessionOpen.set(false)" />
+
+<apply-diff-modal [open]="applyOpen()" [proposal]="applyProposal()" (close)="applyOpen.set(false)" />
+
+
+<ai-edit-modal [open]="aiEditOpen()" [projectId]="id()" [file]="activeFile()" [model]="defaultChatModel()"
+  (close)="aiEditOpen.set(false)" (applied)="onAiEditApplied($event)" />
+
+<file-search-palette [open]="searchOpen()" [files]="files()" [projectId]="id()" (close)="searchOpen.set(false)"
+  (selectFile)="onSelectFile($event)" />
