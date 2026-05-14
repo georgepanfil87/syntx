@@ -67,7 +67,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-4200}:4200"
     volumes:
-      - ./syntx-frontend:/app
+      - ./frontend:/app
       - /app/node_modules
     networks:
       - syntx
